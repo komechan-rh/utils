@@ -1,0 +1,20 @@
+# Node dependencies
+node_modules/
+
+# pnpm store (if present)
+.pnpm-store/
+
+# Build output
+dist/
+
+# clasp artifacts
+.clasp.json
+
+# OS files
+.DS_Store
+
+# Environment
+.env
+
+# Source maps
+*.map

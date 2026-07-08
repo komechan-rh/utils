@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans", "Noto Sans JP", system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  --color-brand-500: #315efb;
+  --color-ink-950: #1c2430;
+  --color-ink-700: #516076;
+  --color-surface-50: #f4f7fb;
+  --color-surface-100: #eef2f7;
+}
+
+@layer base {
+  :root {
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background: radial-gradient(circle at top left, rgba(112, 166, 255, 0.22), transparent 30%),
+      linear-gradient(180deg, var(--color-surface-50) 0%, var(--color-surface-100) 100%);
+    color: var(--color-ink-950);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+}

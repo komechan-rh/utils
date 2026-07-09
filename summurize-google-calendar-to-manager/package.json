@@ -5,9 +5,9 @@
   "scripts": {
     "build": "tsc && cp appsscript.json dist/appsscript.json",
     "watch": "tsc --watch",
-    "push": "pnpm build && clasp push",
-    "deploy": "clasp deploy",
-    "open": "clasp open-script",
+    "push": "pnpm build && clasp push -u panda",
+    "deploy": "clasp deploy -u panda",
+    "open": "clasp open-script -u panda",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "biome lint src",

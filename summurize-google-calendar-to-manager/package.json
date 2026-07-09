@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "tsc && cp appsscript.json dist/appsscript.json",
+    "build": "vite build && cp appsscript.json dist/appsscript.json",
     "watch": "tsc --watch",
-    "push": "pnpm build && clasp push -u panda",
-    "deploy": "clasp deploy -u panda",
-    "open": "clasp open-script -u panda",
+    "push": "pnpm build && clasp push -u ${CLASP_USER:?CLASP_USER is not set}",
+    "deploy": "clasp deploy -u ${CLASP_USER:?CLASP_USER is not set}",
+    "open": "clasp open-script -u ${CLASP_USER:?CLASP_USER is not set}",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "biome lint src",
@@ -20,6 +20,7 @@
     "@types/google-apps-script": "^1.0.7",
     "clasp": "^1.0.0",
     "typescript": "^5.0.0",
+    "vite": "^7.3.0",
     "vitest": "^4.0.18"
   }
 }

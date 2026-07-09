@@ -33,7 +33,7 @@ pnpm install
 複数アカウントを使う場合は、clasp のコマンドに `--user` を付けて実行します。
 
 ```bash
-pnpm clasp --user panda push
+pnpm clasp --user <clasp-user-alias> push
 ```
 
 ## コマンド

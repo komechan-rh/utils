@@ -1,10 +1,15 @@
 import type { CalendarEvent } from "./types";
 
-function getWeeklyEvents(calendarId: string, from: Date): CalendarEvent[] {
-  const calendar = CalendarApp.getCalendarById(calendarId);
-  if (!calendar) {
-    throw new Error(`カレンダーが見つかりません: ${calendarId}`);
-  }
+function getCurrentWeekMonday(): Date {
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setHours(0, 0, 0, 0);
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  return monday;
+}
+
+function getWeeklyEvents(from: Date): CalendarEvent[] {
+  const calendar = CalendarApp.getDefaultCalendar();
 
   const to = new Date(from);
   to.setDate(to.getDate() + 7);
@@ -23,4 +28,4 @@ function getWeeklyEvents(calendarId: string, from: Date): CalendarEvent[] {
   }));
 }
 
-export { getWeeklyEvents };
+export { getCurrentWeekMonday, getWeeklyEvents };

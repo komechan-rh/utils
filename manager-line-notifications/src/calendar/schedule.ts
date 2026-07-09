@@ -1,4 +1,4 @@
-import type { CalendarEvent } from "./calendar-types";
+import type { CalendarEvent } from "./types";
 
 function getCurrentWeekMonday(): Date {
   const now = new Date();

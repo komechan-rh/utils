@@ -1,4 +1,4 @@
-import type { CalendarEvent } from "./calendar-types";
+import type { CalendarEvent } from "./types";
 
 const DAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 

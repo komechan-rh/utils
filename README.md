@@ -7,7 +7,7 @@
 ```
 .
 ├── add-guest-automation/               # カレンダー作成イベントに応じてゲストを自動追加するGAS
-├── summurize-google-calendar-to-manager/ # 週次予定を要約してLINEに通知するGAS
+├── manager-line-notifications/         # マネージャー向けLINE通知（週次予定など）をまとめたGAS
 └── templates/
     ├── gas-template/                    # GAS（TypeScript + pnpm + clasp）のスターターテンプレート
     └── genai-templates/                 # React フロントエンドのスターターテンプレート

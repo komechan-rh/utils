@@ -1,7 +1,7 @@
-import { getCurrentWeekMonday, getWeeklyEvents } from "./calendar";
-import { formatWeeklyMessage } from "./formatter";
-import { pushTextMessage } from "./line";
-import { handleLineWebhook } from "./webhook";
+import { getCurrentWeekMonday, getWeeklyEvents } from "./calendar-schedule";
+import { formatWeeklyMessage } from "./calendar-formatter";
+import { pushTextMessage } from "./line-client";
+import { handleLineWebhook } from "./line-webhook";
 
 function weeklyScheduleToLine(): void {
   const props = PropertiesService.getScriptProperties();

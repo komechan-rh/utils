@@ -1,9 +1,4 @@
-import { getCurrentWeekMonday, getWeeklyEvents } from "./calendar";
-import { formatWeeklyMessage } from "./formatter";
-import { replyTextMessage } from "./line";
-
-const WEEKLY_SCHEDULE_KEYWORD = "今週の予定";
-const GROUP_ID_KEYWORD = "ID";
+import { findLineCommand } from "./line-commands";
 
 type LineWebhookMessage = {
   type: string;
@@ -25,22 +20,6 @@ type LineWebhookBody = {
   events?: LineWebhookEvent[];
 };
 
-function replyWeeklySchedule(replyToken: string): void {
-  const monday = getCurrentWeekMonday();
-  const events = getWeeklyEvents(monday);
-  const message = formatWeeklyMessage(events, monday);
-
-  replyTextMessage(replyToken, message);
-}
-
-function replyGroupId(replyToken: string, groupId: string | undefined): void {
-  const text = groupId
-    ? groupId
-    : "このトークはグループではないため、グループIDを取得できません。";
-
-  replyTextMessage(replyToken, text);
-}
-
 function handleLineWebhook(
   e: GoogleAppsScript.Events.DoPost,
 ): GoogleAppsScript.Content.TextOutput {
@@ -58,10 +37,9 @@ function handleLineWebhook(
       event.message?.type === "text" &&
       event.replyToken
     ) {
-      if (event.message.text === WEEKLY_SCHEDULE_KEYWORD) {
-        replyWeeklySchedule(event.replyToken);
-      } else if (event.message.text === GROUP_ID_KEYWORD) {
-        replyGroupId(event.replyToken, event.source?.groupId);
+      const command = event.message.text && findLineCommand(event.message.text);
+      if (command) {
+        command({ replyToken: event.replyToken, groupId: event.source?.groupId });
       }
     }
   }

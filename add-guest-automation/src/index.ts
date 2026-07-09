@@ -12,17 +12,33 @@ import {
 } from "./calendar-automation";
 
 const CALENDAR_ID = "primary";
-const GUEST_EMAILS = ["ryubb1108@gmail.com"];
 const EVENT_CREATED_LOOKBACK_MINUTES = 10;
 const INCLUDE_ALL_DAY_EVENTS = false;
 const SKIP_TITLE_KEYWORDS = ["[skip-auto-guest]", "招待不要"];
 const ONLY_IF_CREATOR_IS_ME = true;
+
+function getGuestEmails(): string[] {
+  const raw = PropertiesService.getScriptProperties().getProperty(
+    "GUEST_EMAILS",
+  );
+  if (!raw) {
+    throw new Error(
+      "GUEST_EMAILS がスクリプトプロパティに設定されていません。カンマ区切りのメールアドレスを設定してください。",
+    );
+  }
+  return raw
+    .split(",")
+    .map((email) => email.trim())
+    .filter((email) => email !== "");
+}
 
 export function main(): void {
   const startedAt = new Date();
   const result = createEmptyResult();
 
   try {
+    const GUEST_EMAILS = getGuestEmails();
+
     if (GUEST_EMAILS.length === 0) {
       throw new Error("GUEST_EMAILS must contain at least one email.");
     }

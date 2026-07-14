@@ -39,3 +39,20 @@ clasp create --type standalone "hello"
 ```bash
 clasp clone [GAS ID]
 ```
+
+### 複数アカウントを使い分ける
+
+`clasp login` は毎回 `default` という名前でログイン情報を上書きするため、複数の Google アカウントを使い分けたい場合は `-u/--user` で名前を付けてログインする。
+
+```bash
+clasp login -u <user-name>
+```
+
+`push` / `deploy` など他のコマンドでも同様に `-u <名前>` を付けないと `default` アカウントが使われる。
+
+```bash
+clasp push -u <user-name>
+clasp create-deployment -u <user-name>
+```
+
+現在ログイン中のアカウントの確認方法は、ルートの [README.md](../../README.md) を参照。

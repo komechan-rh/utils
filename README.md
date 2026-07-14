@@ -25,3 +25,14 @@
 - clasp: Google Apps Script へのデプロイ
 - Biome: lint / format
 - Vitest: テスト
+
+## clasp の認証ユーザーを確認する
+
+`clasp login` の認証情報はプロジェクト単位ではなく `~/.clasprc.json` にマシン全体で保存される。名前を省略すると常に `default` アカウントが対象になるため、複数アカウントを使い分けている場合は `-u <名前>` を付けて確認する。
+
+```bash
+clasp show-authorized-user --json               # default アカウント
+clasp show-authorized-user --json -u <user-name> # <user-name> という名前のアカウント
+```
+
+ログイン・push・deploy 時のアカウント切り替え方法は各プロジェクトの README（例: [templates/gas-template/README.md](./templates/gas-template/README.md)）を参照。

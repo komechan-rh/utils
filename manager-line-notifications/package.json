@@ -7,6 +7,7 @@
     "watch": "tsc --watch",
     "push": "pnpm build && clasp push -u ${CLASP_USER:?CLASP_USER is not set}",
     "deploy": "clasp deploy -u ${CLASP_USER:?CLASP_USER is not set}",
+    "deploy:webhook": "bash scripts/deploy-and-update-webhook.sh",
     "open": "clasp open-script -u ${CLASP_USER:?CLASP_USER is not set}",
     "test": "vitest run",
     "test:watch": "vitest",

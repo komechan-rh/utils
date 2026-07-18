@@ -7,6 +7,7 @@
 ```
 .
 ├── add-guest-automation/               # カレンダー作成イベントに応じてゲストを自動追加するGAS
+├── gmail-inquiry-draft-automation/     # Gmailの問い合わせメールに返信下書きを自動作成するGAS
 ├── manager-line-notifications/         # マネージャー向けLINE通知（週次予定など）をまとめたGAS
 └── templates/
     ├── gas-template/                    # GAS（TypeScript + pnpm + clasp）のスターターテンプレート

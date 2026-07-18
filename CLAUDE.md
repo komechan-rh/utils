@@ -6,6 +6,7 @@
   - React 実装が必要な場合のみ `templates/genai-templates` を参考にする
 - 1 automation = 1 ディレクトリ（ルート直下）とし、既存の `add-guest-automation` や `manager-line-notifications` と同様の構成にする
 - `.clasp.json` は各プロジェクト固有の `scriptId` を含むため、テンプレートをコピーした後に作成し直す（コミットしない）
+- `package.json` の `devDependencies`（typescript / vite / vitest / @biomejs/biome など）のバージョンはルートの pnpm workspace（[`pnpm-workspace.yaml`](./pnpm-workspace.yaml)）の `catalog` で一元管理している。テンプレートをコピーした直後は具体的なバージョン文字列のままなので、`catalog:` 参照に置き換えたうえでルートで `pnpm install` を実行する
 - 既存の automation の実装（`add-guest-automation`, `manager-line-notifications`）は具体例として参照してよい
 - 変更は対象ディレクトリ内に閉じ、他の automation やテンプレートに影響を与えない
 - 不要な抽象化や、テンプレートにない独自ルールの追加は避ける

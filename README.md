@@ -21,10 +21,14 @@
 
 ## 共通ツール
 
-- pnpm: パッケージ管理
+- pnpm: パッケージ管理（ルートの pnpm workspace で各GASプロジェクトを束ねている）
 - clasp: Google Apps Script へのデプロイ
 - Biome: lint / format
 - Vitest: テスト
+
+## 依存バージョンの管理
+
+各GASプロジェクト（`add-guest-automation`, `manager-line-notifications` など）の `typescript` / `vite` / `vitest` / `@biomejs/biome` などの devDependencies バージョンは、ルートの [`pnpm-workspace.yaml`](./pnpm-workspace.yaml) の `catalog` で一元管理している。バージョンを上げる場合はルートの `pnpm-workspace.yaml` を編集し、ルートで `pnpm install` を実行する。
 
 ## clasp の認証ユーザーを確認する
 

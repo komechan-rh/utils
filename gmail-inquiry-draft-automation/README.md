@@ -1,0 +1,67 @@
+# gmail-inquiry-draft-automation
+
+TypeScript、pnpm、clasp を使った Google Apps Script プロジェクトです。
+Gmail に届いた問い合わせメールに対して、返信の下書きを自動作成します。
+
+GAS には「メール受信をトリガーに直接実行する」仕組みがないため、時間主導型トリガーで受信箱を定期的にポーリングする方式にしています。件名に指定キーワードを含むスレッドのうち、まだ下書きを作成していない最新の1件を見つけて処理します。
+
+## 仕組み
+
+1. `main` が `subject:"<問い合わせキーワード>" -label:"<処理済みラベル>"` で該当スレッドを検索し、最新の1件のみを対象にします。件名（タイトル）に `INQUIRY_SUBJECT_KEYWORD`（既定値: `問い合わせ`）を含むメールが対象です（部分一致）。未処理が複数ある場合は、次回以降のトリガー実行で順次処理されます。
+2. 各スレッドについて、既に下書きが存在する場合はスキップし、なければ最新メッセージの送信者名を宛名にした返信下書きを作成します。
+3. 処理したスレッドには処理済みラベル（`PROCESSED_LABEL_NAME`、既定値: `下書き作成済み`。存在しない場合は自動作成）を付与し、次回以降の重複処理を防ぎます。
+
+下書きを作成するだけで送信は行いません。内容を確認のうえ、手動で送信してください。
+
+## セットアップ
+
+```bash
+pnpm install
+```
+
+1. 新規 GAS プロジェクトを作成する場合は `clasp create --type standalone --title "gmail-inquiry-draft-automation"` を実行します（複数アカウントを使う場合は `--user <name>` を付与）。
+2. 既存の GAS プロジェクトへ紐付ける場合は `.clasp.json` を作成し、`scriptId` と `rootDir: "dist"` を設定します。
+3. `pnpm run build` で TypeScript をコンパイルします。
+4. `pnpm run push` で Apps Script に反映します。
+5. Apps Script のブラウザ画面（`pnpm run open`）でスクリプトプロパティを設定します（下記「スクリプトプロパティ」参照）。
+6. `setupTrigger` を一度だけ手動実行し、`TRIGGER_INTERVAL_MINUTES`（既定値: 5分）ごとに `main` が実行される時間主導型トリガーを登録します。
+
+`.clasp.json` の例:
+
+```json
+{
+  "scriptId": "YOUR_SCRIPT_ID",
+  "rootDir": "dist"
+}
+```
+
+`pnpm run push` / `pnpm run deploy` / `pnpm run open` は `CLASP_USER` 環境変数で指定した clasp ユーザーを使います（未設定の場合はエラーになり、`default` アカウントが誤って使われることはありません）。
+
+```bash
+CLASP_USER=<clasp-user-alias> pnpm run push
+```
+
+## スクリプトプロパティ
+
+Apps Script エディタの「プロジェクトの設定」→「スクリプト プロパティ」で以下を設定します。
+
+| キー | 必須 | 値 |
+|------|------|----|
+| `ORGANIZATION_NAME` | 必須 | 下書き本文で名乗る組織・施設名（例: `〇〇ハウス`） |
+| `REPLY_SIGNATURE` | 任意 | 下書き本文の末尾に付ける署名（未設定の場合は署名なし） |
+| `LINE_FRIEND_URL` | 任意 | 公式LINEアカウントの友達追加URL。設定すると本文と署名の間に友達追加を案内する文言を挿入する（未設定の場合は案内なし） |
+| `INQUIRY_SUBJECT_KEYWORD` | 任意 | 問い合わせメールと判定する件名（タイトル）キーワード。部分一致（既定値: `問い合わせ`） |
+| `PROCESSED_LABEL_NAME` | 任意 | 下書き作成済みスレッドに付与するラベル名（既定値: `下書き作成済み`） |
+
+各プロパティ値の前後の空白は自動で除去されるため、コピー&ペースト時に空白が混入しても判定への影響はありません。
+
+## コマンド
+
+- `pnpm run build` - TypeScript をコンパイルし、`appsscript.json` を `dist/` にコピー
+- `pnpm run watch` - TypeScript の変更を監視してコンパイル
+- `pnpm run push` - ビルド後に Apps Script へプッシュ
+- `pnpm run deploy` - clasp でデプロイ
+- `pnpm run open` - Apps Script エディタを開く
+- `pnpm run typecheck` - 型チェック
+- `pnpm run lint` - Biome lint
+- `pnpm run test` - Vitest

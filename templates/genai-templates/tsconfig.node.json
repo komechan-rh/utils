@@ -7,9 +7,8 @@
     "allowSyntheticDefaultImports": true,
     "noEmit": true,
     "strict": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
     "types": ["node"]
   },

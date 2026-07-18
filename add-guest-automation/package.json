@@ -18,7 +18,7 @@
   "devDependencies": {
     "@biomejs/biome": "catalog:",
     "@types/google-apps-script": "catalog:",
-    "clasp": "catalog:",
+    "@google/clasp": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"

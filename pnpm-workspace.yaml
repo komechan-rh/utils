@@ -7,4 +7,4 @@ catalog:
   vitest: ^4.0.18
   "@biomejs/biome": ^2.4.6
   "@types/google-apps-script": ^1.0.7
-  clasp: ^1.0.0
+  "@google/clasp": ^3.3.0

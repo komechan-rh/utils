@@ -17,11 +17,11 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.6",
-    "@types/google-apps-script": "^1.0.7",
-    "@google/clasp": "^3.3.0",
-    "typescript": "^5.0.0",
-    "vite": "^7.3.0",
-    "vitest": "^4.0.18"
+    "@biomejs/biome": "catalog:",
+    "@types/google-apps-script": "catalog:",
+    "@google/clasp": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
   }
 }

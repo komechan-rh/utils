@@ -1,6 +1,6 @@
 # utils
 
-個人用の業務自動化スクリプト（Google Apps Script）とテンプレートをまとめたリポジトリです。
+個人用の業務自動化スクリプト（Google Apps Script）をまとめたリポジトリです。
 
 ## 構成
 
@@ -8,17 +8,14 @@
 .
 ├── add-guest-automation/               # カレンダー作成イベントに応じてゲストを自動追加するGAS
 ├── gmail-inquiry-draft-automation/     # Gmailの問い合わせメールに返信下書きを自動作成するGAS
-├── manager-line-notifications/         # マネージャー向けLINE通知（週次予定など）をまとめたGAS
-└── templates/
-    ├── gas-template/                    # GAS（TypeScript + pnpm + clasp）のスターターテンプレート
-    └── genai-templates/                 # React フロントエンドのスターターテンプレート
+└── manager-line-notifications/         # マネージャー向けLINE通知（週次予定など）をまとめたGAS
 ```
 
 各プロジェクトのセットアップ・コマンドは、それぞれのディレクトリの `README.md` を参照してください。
 
 ## 新しいオートメーションを追加する
 
-新規に GAS ベースの自動化を作る場合は、`templates/gas-template` を参考に実装してください。詳細は [CLAUDE.md](./CLAUDE.md) を参照してください。
+新規に GAS ベースの自動化を作る場合は、既存の automation（例: `gmail-inquiry-draft-automation`）を参考に実装してください。詳細は [CLAUDE.md](./CLAUDE.md) を参照してください。
 
 ## 共通ツール
 
@@ -40,4 +37,4 @@ clasp show-authorized-user --json               # default アカウント
 clasp show-authorized-user --json -u <user-name> # <user-name> という名前のアカウント
 ```
 
-ログイン・push・deploy 時のアカウント切り替え方法は各プロジェクトの README（例: [templates/gas-template/README.md](./templates/gas-template/README.md)）を参照。
+ログイン・push・deploy 時のアカウント切り替え方法は各プロジェクトの README（例: [gmail-inquiry-draft-automation/README.md](./gmail-inquiry-draft-automation/README.md)）を参照。

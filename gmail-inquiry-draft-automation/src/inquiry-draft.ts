@@ -4,6 +4,7 @@ type InquiryLabel = GoogleAppsScript.Gmail.GmailLabel;
 
 export type InquiryDraftConfig = {
   organizationName: string;
+  managerName: string;
   replySignature: string;
   lineFriendUrl: string;
 };
@@ -38,18 +39,30 @@ export function extractSenderName(fromHeader: string): string {
   return match[1].trim();
 }
 
-export function buildDraftBody(senderName: string, config: InquiryDraftConfig): string {
-  const salutation = senderName ? `${senderName} 様\n\n` : "";
+export function buildGreeting(senderName: string, config: InquiryDraftConfig): string {
+  const salutation = senderName || "お客様";
+
+  return (
+    `${salutation}さま\n\n` +
+    `初めまして！\n` +
+    `${config.organizationName}管理人の${config.managerName}と申します。\n` +
+    `${config.organizationName}に興味を持っていただき、大変ありがとうございます。\n` +
+    `是非とも${config.organizationName}に内見にお越しいただきたく思います。`
+  );
+}
+
+export function buildClosing(config: InquiryDraftConfig): string {
   const lineSection = config.lineFriendUrl
-    ? `\n\nまた今後のやりとりをスムーズに行うためにも、公式ラインの友達追加をお勧めしております。\n` +
-      `ぜひ公式ラインからやり取りさせていただけますと幸いです。\n${config.lineFriendUrl}`
+    ? `また、今後のやりとりをスムーズに行うためにも、公式ラインの友達追加をお勧めしております。\n` +
+      `追加いただける場合は、以下のリンクから友達追加をしていただくようにお願いいたします。\n${config.lineFriendUrl}\n\n`
     : "";
   const signature = config.replySignature ? `\n\n${config.replySignature}` : "";
 
-  return (
-    `${salutation}この度は${config.organizationName}にお問い合わせいただき、誠にありがとうございます。\n` +
-    `内容を確認のうえ、担当者より改めてご連絡いたします。今しばらくお待ちくださいませ。${lineSection}${signature}`
-  );
+  return `${lineSection}ご確認よろしくお願いいたします。${signature}`;
+}
+
+export function buildDraftBody(senderName: string, viewingMessage: string, config: InquiryDraftConfig): string {
+  return `${buildGreeting(senderName, config)}\n\n${viewingMessage}\n\n${buildClosing(config)}`;
 }
 
 export function threadHasExistingDraft(thread: InquiryThread, drafts: InquiryDraft[]): boolean {
@@ -68,12 +81,16 @@ export function getOrCreateLabel(name: string): InquiryLabel {
   return GmailApp.getUserLabelByName(name) || GmailApp.createLabel(name);
 }
 
-export function createDraftForThread(thread: InquiryThread, config: InquiryDraftConfig): void {
+export function createDraftForThread(
+  thread: InquiryThread,
+  viewingMessage: string,
+  config: InquiryDraftConfig,
+): void {
   const messages = thread.getMessages();
   const latestMessage = messages[messages.length - 1];
   const senderName = extractSenderName(latestMessage.getFrom());
 
-  thread.createDraftReply(buildDraftBody(senderName, config));
+  thread.createDraftReply(buildDraftBody(senderName, viewingMessage, config));
 }
 
 export function formatError(error: unknown): string {

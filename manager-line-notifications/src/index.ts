@@ -1,3 +1,4 @@
+import { respondJson, syncScriptProperties } from "shared/script-properties-sync";
 import { getCurrentWeekMonday, getWeeklyEvents } from "./calendar/schedule";
 import { formatWeeklyMessage } from "./calendar/formatter";
 import { pushTextMessage } from "./line-client";
@@ -53,7 +54,20 @@ function setupTrigger(): void {
 }
 
 function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.Content.TextOutput {
-  return handleLineWebhook(e);
+  let body: unknown;
+  try {
+    body = JSON.parse(e.postData.contents);
+  } catch (error) {
+    return respondJson({ ok: false, error: error instanceof Error ? error.message : String(error) });
+  }
+
+  // LINEのWebhookペイロードは常にトップレベルの events 配列を持つ。
+  // スクリプトプロパティ同期リクエストは secret/properties を持ち、events は持たない。
+  if (Array.isArray((body as { events?: unknown })?.events)) {
+    return handleLineWebhook(e);
+  }
+
+  return respondJson(syncScriptProperties(body as { secret?: string; properties?: Record<string, string> }));
 }
 
 export { weeklyScheduleToLine, monthlyPayrollToLine, setupTrigger, doPost };

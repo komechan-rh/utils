@@ -46,7 +46,9 @@ reply 機能を使うため、Webhook は一時的にではなく常時オンに
    - **チャネルアクセストークン（長期）** を発行する → `LINE_CHANNEL_ACCESS_TOKEN` に使用
    - 「応答メッセージ」（LINE公式アカウントのデフォルト応答機能）をオフにする（`doPost` 側の応答と重複させないため）
    - 「Webhookの利用」をオンにする
-4. `pnpm run push` で反映後、Apps Script エディタで「デプロイ」→「新しいデプロイ」→ 種類「ウェブアプリ」、実行ユーザー「自分」、アクセス「全員」でデプロイし、発行された URL を Messaging API 設定の Webhook URL に登録します（コードを更新した場合は「デプロイを管理」から同じデプロイを更新し、URLが変わらないようにします）。
+4. `pnpm run push` で反映後、Apps Script エディタで「デプロイ」→「新しいデプロイ」→ 種類「ウェブアプリ」、実行ユーザー「自分」、アクセス「全員」でデプロイし、発行された URL を Messaging API 設定の Webhook URL に登録します。
+
+   **コードを更新した場合は、二度と `pnpm run deploy` を使わないでください。** `deploy` は新規デプロイ（＝新しいURL）を作成するため、LINE側に登録済みのWebhook URLが無効になります。既存デプロイの更新には、必ず `DEPLOYMENT_ID=<デプロイID> CLASP_USER=<alias> pnpm run redeploy` を使い、同じデプロイ・同じURLのままコードだけを更新してください。デプロイIDは `clasp deployments -u <alias>` で確認できます。更新後は LINE グループで実際にメッセージ（例:「今週の予定」）を送り、Bot が応答することを必ず確認してください。
 5. 作成した Bot を、通知を送りたい LINE グループに招待します（QRコードまたは Bot の LINE ID で友だち追加してからグループに招待）。
 6. グループ内で「ID」と発言し、返信された `group_id` を `LINE_GROUP_ID` に使います。
 7. 取得したチャネルアクセストークンとグループIDを、GAS のスクリプトプロパティに設定します。
@@ -73,18 +75,40 @@ reply 機能を使うため、Webhook は一時的にではなく常時オンに
 
 Apps Script エディタの「プロジェクトの設定」→「スクリプト プロパティ」で以下を設定します。
 
-| キー | 値 |
-|------|----|
-| `LINE_GROUP_ID` | 送信先 LINE グループのID |
-| `LINE_CHANNEL_ACCESS_TOKEN` | LINE Developers で発行したチャネルアクセストークン（長期） |
-| `PAYROLL_SPREADSHEET_ID` | 給与支払い管理スプレッドシートのID（スプレッドシートURLの `/d/` と `/edit` の間の文字列） |
+| キー | 必須 | 値 |
+|------|------|----|
+| `LINE_GROUP_ID` | 必須 | 送信先 LINE グループのID |
+| `LINE_CHANNEL_ACCESS_TOKEN` | 必須 | LINE Developers で発行したチャネルアクセストークン（長期） |
+| `PAYROLL_SPREADSHEET_ID` | 必須 | 給与支払い管理スプレッドシートのID（スプレッドシートURLの `/d/` と `/edit` の間の文字列） |
+| `SYNC_SECRET` | 下記「Infisicalによる自動同期」を使う場合のみ必須 | `sync-props` からの同期リクエストを認証する共有シークレット。ランダムな文字列を生成し、Apps Script エディタで手動設定したうえで、同じ値を Infisical にも登録する |
+
+### `doPost` について
+
+このプロジェクトの Web アプリは、LINE Webhook とスクリプトプロパティ同期の両方を1つの `doPost` で受け付けます。リクエストボディを一度パースし、トップレベルに `events` 配列を持つものは LINE Webhook（`src/line-webhook.ts`）、`secret`/`properties` を持つものはスクリプトプロパティ同期（`shared` の `syncScriptProperties`）へルーティングします。GAS の制約上 `doPost` は1プロジェクトに1つしか持てないため、この2つを共存させています。
+
+### Infisical によるスクリプトプロパティの自動同期（任意）
+
+上記の値（`SYNC_SECRET` を除く）を毎回 Apps Script エディタで手入力する代わりに、[Infisical](https://infisical.com/) に登録した値を、上記の `doPost` 経由でスクリプトプロパティへ同期できます。仕組みの詳細は [gmail-inquiry-draft-automation/README.md](../gmail-inquiry-draft-automation/README.md#infisical-によるスクリプトプロパティの自動同期任意) を参照してください。
+
+前提:
+
+- Apps Script エディタの「プロジェクトの設定」→「スクリプト プロパティ」で `SYNC_SECRET` にランダムな文字列を手動設定済みであること（初回のみ、Web アプリ経由では設定できない）
+- Infisical の共有プロジェクトの `/manager-line-notifications` フォルダに、`LINE_GROUP_ID`・`LINE_CHANNEL_ACCESS_TOKEN`・`PAYROLL_SPREADSHEET_ID`・`SYNC_SECRET`（エディタで設定した値と同じもの）・`WEBAPP_URL`（LINE Webhookとして既に登録済みのURL）を登録済みであること
+
+実行方法:
+
+```bash
+pnpm run sync-props
+```
 
 ## コマンド
 
 - `pnpm run build` - TypeScript をコンパイルし、`appsscript.json` を `dist/` にコピー
 - `pnpm run watch` - TypeScript の変更を監視してコンパイル
 - `pnpm run push` - ビルド後に Apps Script へプッシュ
-- `pnpm run deploy` - clasp でデプロイ
+- `pnpm run sync-props` - Infisical のシークレットをスクリプトプロパティへ同期（前掲の「Infisical によるスクリプトプロパティの自動同期」参照）
+- `pnpm run deploy` - clasp で新規デプロイを作成する（**本番Webhookが有効な間は使用禁止**。既存デプロイの更新には `redeploy` を使うこと）
+- `pnpm run redeploy` - `DEPLOYMENT_ID` 環境変数で指定した既存デプロイをコードごと更新する（URLは変わらない）
 - `pnpm run open` - Apps Script エディタを開く
 - `pnpm run typecheck` - 型チェック
 - `pnpm run lint` - Biome lint

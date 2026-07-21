@@ -80,6 +80,10 @@ importers:
         version: 4.1.10(@types/node@20.19.43)(vite@7.3.6(@types/node@20.19.43))
 
   manager-line-notifications:
+    dependencies:
+      shared:
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@biomejs/biome':
         specifier: 'catalog:'

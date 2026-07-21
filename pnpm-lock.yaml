@@ -51,6 +51,10 @@ importers:
         version: 4.1.10(@types/node@20.19.43)(vite@7.3.6(@types/node@20.19.43))
 
   gmail-inquiry-draft-automation:
+    dependencies:
+      shared:
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@biomejs/biome':
         specifier: 'catalog:'
@@ -88,6 +92,21 @@ importers:
       vite:
         specifier: 'catalog:'
         version: 7.3.6(@types/node@20.19.43)
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(@types/node@20.19.43)(vite@7.3.6(@types/node@20.19.43))
+
+  shared:
+    devDependencies:
+      '@biomejs/biome':
+        specifier: 'catalog:'
+        version: 2.5.4
+      '@types/google-apps-script':
+        specifier: 'catalog:'
+        version: 1.0.100
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
       vitest:
         specifier: 'catalog:'
         version: 4.1.10(@types/node@20.19.43)(vite@7.3.6(@types/node@20.19.43))

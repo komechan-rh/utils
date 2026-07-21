@@ -8,7 +8,8 @@
 .
 ├── add-guest-automation/               # カレンダー作成イベントに応じてゲストを自動追加するGAS
 ├── gmail-inquiry-draft-automation/     # Gmailの問い合わせメールに返信下書きを自動作成するGAS
-└── manager-line-notifications/         # マネージャー向けLINE通知（週次予定など）をまとめたGAS
+├── manager-line-notifications/         # マネージャー向けLINE通知（週次予定など）をまとめたGAS
+└── shared/                             # 複数automationで共有するコード(スクリプトプロパティ同期など)
 ```
 
 各プロジェクトのセットアップ・コマンドは、それぞれのディレクトリの `README.md` を参照してください。

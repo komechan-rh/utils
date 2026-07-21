@@ -1,0 +1,24 @@
+{
+  "name": "shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./script-properties-sync": "./src/script-properties-sync.ts",
+    "./sync-script-properties-cli": "./scripts/sync-script-properties.mjs"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "biome lint src",
+    "format": "biome format --write src",
+    "check": "biome check --write src",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "@types/google-apps-script": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

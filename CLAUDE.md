@@ -9,6 +9,7 @@
 - `package.json` の `devDependencies`（typescript / vite / vitest / @biomejs/biome など）のバージョンはルートの pnpm workspace（[`pnpm-workspace.yaml`](./pnpm-workspace.yaml)）の `catalog` で一元管理している。既存 automation をコピーした場合も含め、具体的なバージョン文字列になっていないか確認し、`catalog:` 参照に置き換えたうえでルートで `pnpm install` を実行する
 - 既存の automation の実装（`add-guest-automation`, `manager-line-notifications`, `gmail-inquiry-draft-automation`）は具体例として参照してよい
 - 変更は対象ディレクトリ内に閉じ、他の automation に影響を与えない
+  - 唯一の意図的な例外が `shared/`。複数 automation で共通化する価値がある処理（例: スクリプトプロパティ同期）はここに置き、各 automation の pnpm workspace 依存として参照してよい。`shared/` への変更は複数 automation に影響しうることを踏まえ、変更後は依存する automation 側で build / test を確認する
 - 不要な抽象化や、既存 automation にない独自ルールの追加は避ける
 
 ## 秘匿情報の扱い

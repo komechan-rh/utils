@@ -69,7 +69,10 @@ describe("doPost", () => {
     return { postData: { contents: JSON.stringify(body) } } as GoogleAppsScript.Events.DoPost;
   }
 
-  it("シークレットが一致する場合はスクリプトプロパティを更新する", () => {
+  // 認証ロジックの詳細ケース(シークレット不一致・properties未指定など)は
+  // shared/src/script-properties-sync.test.ts で検証済みのため、ここでは
+  // shared への委譲と、gmail側固有のJSONパース失敗ハンドリングのみ確認する。
+  it("有効なリクエストの場合はshared経由でスクリプトプロパティを更新する", () => {
     const { setProperties, output } = stubServices("correct-secret");
 
     doPost(buildEvent({ secret: "correct-secret", properties: { ORGANIZATION_NAME: "example" } }));
@@ -78,13 +81,13 @@ describe("doPost", () => {
     expect(output.setContent).toHaveBeenCalledWith(JSON.stringify({ ok: true }));
   });
 
-  it("シークレットが一致しない場合はスクリプトプロパティを更新しない", () => {
-    const { setProperties, output } = stubServices("correct-secret");
+  it("不正なJSONの場合はエラーレスポンスを返す", () => {
+    const { output } = stubServices("correct-secret");
 
-    doPost(buildEvent({ secret: "wrong-secret", properties: { ORGANIZATION_NAME: "example" } }));
+    doPost({ postData: { contents: "not-json" } } as GoogleAppsScript.Events.DoPost);
 
-    expect(setProperties).not.toHaveBeenCalled();
-    expect(output.setContent).toHaveBeenCalledWith(JSON.stringify({ ok: false, error: "unauthorized" }));
+    const [responseJson] = output.setContent.mock.calls.at(0) ?? [];
+    expect(JSON.parse(responseJson as string)).toMatchObject({ ok: false });
   });
 });
 

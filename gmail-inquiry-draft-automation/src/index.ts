@@ -1,3 +1,4 @@
+import { respondJson, syncScriptProperties } from "shared/script-properties-sync";
 import { type GenAiConfig, generateInquiryReplyMessage } from "./genai-client";
 import {
   createDraftForThread,
@@ -106,32 +107,12 @@ function setScriptProperties(props: Record<string, string>): void {
 }
 
 function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.Content.TextOutput {
-  const output = ContentService.createTextOutput().setMimeType(ContentService.MimeType.JSON);
-  const respond = (body: Record<string, unknown>) => output.setContent(JSON.stringify(body));
-
   try {
-    const { secret, properties } = JSON.parse(e.postData.contents) as {
-      secret?: string;
-      properties?: Record<string, string>;
-    };
-
-    const expectedSecret = getTrimmedProperty(PropertiesService.getScriptProperties(), "SYNC_SECRET");
-    if (!expectedSecret || secret !== expectedSecret) {
-      respond({ ok: false, error: "unauthorized" });
-      return output;
-    }
-    if (!properties) {
-      respond({ ok: false, error: "properties is required" });
-      return output;
-    }
-
-    setScriptProperties(properties);
-    respond({ ok: true });
+    const body = JSON.parse(e.postData.contents);
+    return respondJson(syncScriptProperties(body));
   } catch (error) {
-    respond({ ok: false, error: formatError(error) });
+    return respondJson({ ok: false, error: formatError(error) });
   }
-
-  return output;
 }
 
 function setupTrigger(): void {

@@ -1,11 +1,60 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createEmptyResult, shouldProcessCreatedEvent } from "./calendar-automation";
-import { main } from "./index";
+import { doPost, main } from "./index";
 
 describe("GAS entrypoints", () => {
   it("GASから呼び出すmain関数を定義する", () => {
     expect(main).toBeTypeOf("function");
+  });
+});
+
+describe("doPost", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function stubServices(syncSecret: string) {
+    const setProperties = vi.fn();
+    const getProperty = vi.fn((key: string) => (key === "SYNC_SECRET" ? syncSecret : ""));
+    vi.stubGlobal("PropertiesService", {
+      getScriptProperties: () => ({ getProperty, setProperties }),
+    });
+
+    const output: { setMimeType: ReturnType<typeof vi.fn>; setContent: ReturnType<typeof vi.fn> } = {
+      setMimeType: vi.fn(() => output),
+      setContent: vi.fn(() => output),
+    };
+    vi.stubGlobal("ContentService", {
+      createTextOutput: () => output,
+      MimeType: { JSON: "JSON" },
+    });
+
+    return { setProperties, output };
+  }
+
+  function buildEvent(body: unknown) {
+    return { postData: { contents: JSON.stringify(body) } } as GoogleAppsScript.Events.DoPost;
+  }
+
+  // 認証ロジックの詳細ケースはshared/src/script-properties-sync.test.tsで検証済みのため、
+  // ここではsharedへの委譲と、このファイル固有のJSONパース失敗ハンドリングのみ確認する。
+  it("有効なリクエストの場合はshared経由でスクリプトプロパティを更新する", () => {
+    const { setProperties, output } = stubServices("correct-secret");
+
+    doPost(buildEvent({ secret: "correct-secret", properties: { GUEST_EMAILS: "a@example.com" } }));
+
+    expect(setProperties).toHaveBeenCalledWith({ GUEST_EMAILS: "a@example.com" }, false);
+    expect(output.setContent).toHaveBeenCalledWith(JSON.stringify({ ok: true }));
+  });
+
+  it("不正なJSONの場合はエラーレスポンスを返す", () => {
+    const { output } = stubServices("correct-secret");
+
+    doPost({ postData: { contents: "not-json" } } as GoogleAppsScript.Events.DoPost);
+
+    const [responseJson] = output.setContent.mock.calls.at(0) ?? [];
+    expect(JSON.parse(responseJson as string)).toMatchObject({ ok: false });
   });
 });
 

@@ -7,7 +7,9 @@ export default defineConfig({
       generateBundle(_, bundle) {
         const chunk = bundle["index.js"];
         if (chunk?.type === "chunk") {
-          chunk.code += "\nfunction main() { AddGuestAutomationBundle.main(); }\n";
+          chunk.code +=
+            "\nfunction main() { AddGuestAutomationBundle.main(); }" +
+            "\nfunction doPost(e) { return AddGuestAutomationBundle.doPost(e); }\n";
         }
       },
     },

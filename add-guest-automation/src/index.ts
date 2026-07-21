@@ -1,3 +1,4 @@
+import { respondJson, syncScriptProperties } from "shared/script-properties-sync";
 import {
   addGuestsToCalendarEvent,
   createCreatedAfterThreshold,
@@ -124,4 +125,13 @@ export function main(): void {
 
 function formatEmailList(emails: string[]): string {
   return emails.length > 0 ? emails.join(", ") : "なし";
+}
+
+export function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.Content.TextOutput {
+  try {
+    const body = JSON.parse(e.postData.contents);
+    return respondJson(syncScriptProperties(body));
+  } catch (error) {
+    return respondJson({ ok: false, error: formatError(error) });
+  }
 }

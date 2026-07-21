@@ -30,6 +30,10 @@ importers:
   .: {}
 
   add-guest-automation:
+    dependencies:
+      shared:
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@biomejs/biome':
         specifier: 'catalog:'

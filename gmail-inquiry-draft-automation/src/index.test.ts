@@ -9,7 +9,7 @@ import {
   extractSenderName,
   threadHasExistingDraft,
 } from "./inquiry-draft";
-import { main, setScriptProperties, setupTrigger } from "./index";
+import { doPost, main, setScriptProperties, setupTrigger } from "./index";
 
 describe("GAS entrypoints", () => {
   it("GASから呼び出すmain関数を定義する", () => {
@@ -38,6 +38,53 @@ describe("setScriptProperties", () => {
       { GEMINI_API_KEY: "dummy-key", ORGANIZATION_NAME: "example organization" },
       false,
     );
+  });
+});
+
+describe("doPost", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function stubServices(syncSecret: string) {
+    const setProperties = vi.fn();
+    const getProperty = vi.fn((key: string) => (key === "SYNC_SECRET" ? syncSecret : ""));
+    vi.stubGlobal("PropertiesService", {
+      getScriptProperties: () => ({ getProperty, setProperties }),
+    });
+
+    const output: { setMimeType: ReturnType<typeof vi.fn>; setContent: ReturnType<typeof vi.fn> } = {
+      setMimeType: vi.fn(() => output),
+      setContent: vi.fn(() => output),
+    };
+    vi.stubGlobal("ContentService", {
+      createTextOutput: () => output,
+      MimeType: { JSON: "JSON" },
+    });
+
+    return { setProperties, output };
+  }
+
+  function buildEvent(body: unknown) {
+    return { postData: { contents: JSON.stringify(body) } } as GoogleAppsScript.Events.DoPost;
+  }
+
+  it("シークレットが一致する場合はスクリプトプロパティを更新する", () => {
+    const { setProperties, output } = stubServices("correct-secret");
+
+    doPost(buildEvent({ secret: "correct-secret", properties: { ORGANIZATION_NAME: "example" } }));
+
+    expect(setProperties).toHaveBeenCalledWith({ ORGANIZATION_NAME: "example" }, false);
+    expect(output.setContent).toHaveBeenCalledWith(JSON.stringify({ ok: true }));
+  });
+
+  it("シークレットが一致しない場合はスクリプトプロパティを更新しない", () => {
+    const { setProperties, output } = stubServices("correct-secret");
+
+    doPost(buildEvent({ secret: "wrong-secret", properties: { ORGANIZATION_NAME: "example" } }));
+
+    expect(setProperties).not.toHaveBeenCalled();
+    expect(output.setContent).toHaveBeenCalledWith(JSON.stringify({ ok: false, error: "unauthorized" }));
   });
 });
 

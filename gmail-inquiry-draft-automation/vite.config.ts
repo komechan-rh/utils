@@ -9,7 +9,9 @@ export default defineConfig({
         if (chunk?.type === "chunk") {
           chunk.code +=
             "\nfunction main() { GmailInquiryDraftAutomationBundle.main(); }" +
-            "\nfunction setupTrigger() { GmailInquiryDraftAutomationBundle.setupTrigger(); }\n";
+            "\nfunction setupTrigger() { GmailInquiryDraftAutomationBundle.setupTrigger(); }" +
+            "\nfunction setScriptProperties(props) { GmailInquiryDraftAutomationBundle.setScriptProperties(props); }" +
+            "\nfunction doPost(e) { return GmailInquiryDraftAutomationBundle.doPost(e); }\n";
         }
       },
     },

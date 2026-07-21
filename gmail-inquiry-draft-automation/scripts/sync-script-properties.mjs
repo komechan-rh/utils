@@ -1,5 +1,3 @@
-import { execFileSync } from "node:child_process";
-
 // Infisical等の環境変数からスクリプトプロパティに同期するキーの一覧。
 // process.env をそのまま流し込むと無関係な値が Script Properties に混入するため、
 // 同期対象は README.md の「スクリプトプロパティ」表に載っているキーのみに限定する。
@@ -33,27 +31,33 @@ function buildProperties() {
   return props;
 }
 
-function main() {
-  const claspUser = process.env.CLASP_USER;
-  if (!claspUser) {
-    throw new Error("CLASP_USER が設定されていません。例: CLASP_USER=<name> pnpm run sync-props");
+async function main() {
+  const webAppUrl = process.env.WEBAPP_URL;
+  if (!webAppUrl) {
+    throw new Error(
+      "WEBAPP_URL が環境変数に設定されていません。`pnpm run deploy` で発行したWebアプリのURLをInfisicalに登録してください。",
+    );
   }
 
-  const props = buildProperties();
-  console.log(`スクリプトプロパティを同期します。キー: ${Object.keys(props).join(", ")}`);
-
-  try {
-    execFileSync(
-      "clasp",
-      ["run", "setScriptProperties", "-p", JSON.stringify([props]), "-u", claspUser],
-      { stdio: "inherit" },
-    );
-  } catch {
-    // 実行時の例外オブジェクトには渡した引数（＝プロパティの値）が含まれうるため、
-    // 詳細を出力せずサニタイズしたメッセージのみを投げる。
+  const syncSecret = process.env.SYNC_SECRET;
+  if (!syncSecret) {
     throw new Error(
-      "clasp run に失敗しました。事前に `pnpm run push` 済みか、Apps Script API が有効化されているか確認してください。",
+      "SYNC_SECRET が環境変数に設定されていません。Apps Scriptエディタのスクリプトプロパティに設定した値と同じものをInfisicalに登録してください。",
     );
+  }
+
+  const properties = buildProperties();
+  console.log(`スクリプトプロパティを同期します。キー: ${Object.keys(properties).join(", ")}`);
+
+  const response = await fetch(webAppUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ secret: syncSecret, properties }),
+  });
+
+  const result = await response.json().catch(() => null);
+  if (!response.ok || !result?.ok) {
+    throw new Error(`Webアプリへの同期リクエストが失敗しました。詳細: ${result?.error ?? response.statusText}`);
   }
 
   console.log("スクリプトプロパティを同期しました。");

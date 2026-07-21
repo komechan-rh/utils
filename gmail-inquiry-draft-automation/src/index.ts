@@ -105,6 +105,35 @@ function setScriptProperties(props: Record<string, string>): void {
   console.log(`スクリプトプロパティを更新しました。キー: ${Object.keys(props).join(", ")}`);
 }
 
+function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.Content.TextOutput {
+  const output = ContentService.createTextOutput().setMimeType(ContentService.MimeType.JSON);
+  const respond = (body: Record<string, unknown>) => output.setContent(JSON.stringify(body));
+
+  try {
+    const { secret, properties } = JSON.parse(e.postData.contents) as {
+      secret?: string;
+      properties?: Record<string, string>;
+    };
+
+    const expectedSecret = getTrimmedProperty(PropertiesService.getScriptProperties(), "SYNC_SECRET");
+    if (!expectedSecret || secret !== expectedSecret) {
+      respond({ ok: false, error: "unauthorized" });
+      return output;
+    }
+    if (!properties) {
+      respond({ ok: false, error: "properties is required" });
+      return output;
+    }
+
+    setScriptProperties(properties);
+    respond({ ok: true });
+  } catch (error) {
+    respond({ ok: false, error: formatError(error) });
+  }
+
+  return output;
+}
+
 function setupTrigger(): void {
   const triggers = ScriptApp.getProjectTriggers();
   for (const trigger of triggers) {
@@ -118,4 +147,4 @@ function setupTrigger(): void {
   console.log(`トリガーを登録しました。${TRIGGER_INTERVAL_MINUTES}分ごとに main が実行されます。`);
 }
 
-export { main, setScriptProperties, setupTrigger };
+export { doPost, main, setScriptProperties, setupTrigger };

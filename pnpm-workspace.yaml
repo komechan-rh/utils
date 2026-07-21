@@ -8,3 +8,6 @@ catalog:
   "@biomejs/biome": ^2.4.6
   "@types/google-apps-script": ^1.0.7
   "@google/clasp": ^3.3.0
+
+allowBuilds:
+  esbuild: true

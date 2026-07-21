@@ -8,6 +8,7 @@
     "push": "pnpm build && clasp push -u ${CLASP_USER:?CLASP_USER is not set}",
     "deploy": "clasp deploy -u ${CLASP_USER:?CLASP_USER is not set}",
     "open": "clasp open-script -u ${CLASP_USER:?CLASP_USER is not set}",
+    "sync-props": "infisical run -- node scripts/sync-script-properties.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "biome lint src",

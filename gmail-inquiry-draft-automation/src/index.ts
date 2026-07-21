@@ -1,3 +1,4 @@
+import { type GenAiConfig, generateInquiryReplyMessage } from "./genai-client";
 import {
   createDraftForThread,
   createEmptyResult,
@@ -11,6 +12,7 @@ import {
 
 const INQUIRY_SUBJECT_KEYWORD_DEFAULT = "問い合わせ";
 const PROCESSED_LABEL_NAME_DEFAULT = "下書き作成済み";
+const GEMINI_MODEL_DEFAULT = "gemini-2.5-flash";
 const TRIGGER_INTERVAL_MINUTES = 5;
 
 function getTrimmedProperty(props: GoogleAppsScript.Properties.Properties, key: string): string {
@@ -20,22 +22,36 @@ function getTrimmedProperty(props: GoogleAppsScript.Properties.Properties, key: 
 function getConfig(): InquiryDraftConfig & {
   inquirySubjectKeyword: string;
   processedLabelName: string;
+  genai: GenAiConfig;
 } {
   const props = PropertiesService.getScriptProperties();
   const organizationName = getTrimmedProperty(props, "ORGANIZATION_NAME");
+  const managerName = getTrimmedProperty(props, "MANAGER_NAME");
+  const geminiApiKey = getTrimmedProperty(props, "GEMINI_API_KEY");
 
   if (!organizationName) {
     throw new Error("ORGANIZATION_NAME がスクリプトプロパティに設定されていません。");
   }
+  if (!managerName) {
+    throw new Error("MANAGER_NAME がスクリプトプロパティに設定されていません。");
+  }
+  if (!geminiApiKey) {
+    throw new Error("GEMINI_API_KEY がスクリプトプロパティに設定されていません。");
+  }
 
   return {
     organizationName,
+    managerName,
     replySignature: getTrimmedProperty(props, "REPLY_SIGNATURE"),
     lineFriendUrl: getTrimmedProperty(props, "LINE_FRIEND_URL"),
     inquirySubjectKeyword:
       getTrimmedProperty(props, "INQUIRY_SUBJECT_KEYWORD") || INQUIRY_SUBJECT_KEYWORD_DEFAULT,
     processedLabelName:
       getTrimmedProperty(props, "PROCESSED_LABEL_NAME") || PROCESSED_LABEL_NAME_DEFAULT,
+    genai: {
+      apiKey: geminiApiKey,
+      model: getTrimmedProperty(props, "GEMINI_MODEL") || GEMINI_MODEL_DEFAULT,
+    },
   };
 }
 
@@ -60,7 +76,11 @@ function main(): void {
           return;
         }
 
-        createDraftForThread(thread, config);
+        const messages = thread.getMessages();
+        const inquiryBody = messages[messages.length - 1].getPlainBody();
+        const viewingMessage = generateInquiryReplyMessage(inquiryBody, config.genai);
+
+        createDraftForThread(thread, viewingMessage, config);
         processedLabel.addToThread(thread);
         result.drafted += 1;
         console.log(`返信の下書きを作成しました。件名「${thread.getFirstMessageSubject()}」`);
@@ -80,6 +100,11 @@ function main(): void {
   }
 }
 
+function setScriptProperties(props: Record<string, string>): void {
+  PropertiesService.getScriptProperties().setProperties(props, false);
+  console.log(`スクリプトプロパティを更新しました。キー: ${Object.keys(props).join(", ")}`);
+}
+
 function setupTrigger(): void {
   const triggers = ScriptApp.getProjectTriggers();
   for (const trigger of triggers) {
@@ -93,4 +118,4 @@ function setupTrigger(): void {
   console.log(`トリガーを登録しました。${TRIGGER_INTERVAL_MINUTES}分ごとに main が実行されます。`);
 }
 
-export { main, setupTrigger };
+export { main, setScriptProperties, setupTrigger };

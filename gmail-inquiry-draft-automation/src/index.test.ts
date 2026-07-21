@@ -1,13 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  buildClosing,
   buildDraftBody,
+  buildGreeting,
   buildSearchQuery,
   createEmptyResult,
   extractSenderName,
   threadHasExistingDraft,
 } from "./inquiry-draft";
-import { main, setupTrigger } from "./index";
+import { main, setScriptProperties, setupTrigger } from "./index";
 
 describe("GAS entrypoints", () => {
   it("GASから呼び出すmain関数を定義する", () => {
@@ -16,6 +18,26 @@ describe("GAS entrypoints", () => {
 
   it("GASから呼び出すsetupTrigger関数を定義する", () => {
     expect(setupTrigger).toBeTypeOf("function");
+  });
+});
+
+describe("setScriptProperties", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("渡されたプロパティをすべて上書きし、既存の他のプロパティは削除しない", () => {
+    const setProperties = vi.fn();
+    vi.stubGlobal("PropertiesService", {
+      getScriptProperties: () => ({ setProperties }),
+    });
+
+    setScriptProperties({ GEMINI_API_KEY: "dummy-key", ORGANIZATION_NAME: "example organization" });
+
+    expect(setProperties).toHaveBeenCalledWith(
+      { GEMINI_API_KEY: "dummy-key", ORGANIZATION_NAME: "example organization" },
+      false,
+    );
   });
 });
 
@@ -53,57 +75,76 @@ describe("extractSenderName", () => {
   });
 });
 
-describe("buildDraftBody", () => {
-  const config = { organizationName: "example organization", replySignature: "", lineFriendUrl: "" };
+describe("buildGreeting", () => {
+  const config = {
+    organizationName: "example organization",
+    managerName: "example manager",
+    replySignature: "",
+    lineFriendUrl: "",
+  };
 
-  it("送信者名がある場合は宛名から始まる本文を作る", () => {
-    const body = buildDraftBody("山田太郎", config);
+  it("送信者名がある場合は宛名から始まる挨拶文を作る", () => {
+    const greeting = buildGreeting("山田太郎", config);
 
-    expect(body.startsWith("山田太郎 様\n\n")).toBe(true);
-    expect(body).toContain("この度はexample organizationにお問い合わせいただき");
+    expect(greeting.startsWith("山田太郎さま\n\n")).toBe(true);
+    expect(greeting).toContain("example organization管理人のexample managerと申します。");
   });
 
-  it("送信者名がない場合は宛名なしの本文を作る", () => {
-    const body = buildDraftBody("", config);
+  it("送信者名がない場合は「お客様」を宛名にする", () => {
+    const greeting = buildGreeting("", config);
 
-    expect(body.startsWith("この度は")).toBe(true);
+    expect(greeting.startsWith("お客様さま\n\n")).toBe(true);
   });
+});
+
+describe("buildClosing", () => {
+  const config = { organizationName: "example organization", managerName: "", replySignature: "", lineFriendUrl: "" };
 
   it("公式ラインURLが設定されている場合は友達追加の案内を挿入する", () => {
-    const body = buildDraftBody("山田太郎", {
-      organizationName: "example organization",
-      replySignature: "",
-      lineFriendUrl: "https://page.line.me/example",
-    });
+    const closing = buildClosing({ ...config, lineFriendUrl: "https://page.line.me/example" });
 
-    expect(body).toContain("公式ラインの友達追加をお勧めしております");
-    expect(body).toContain("https://page.line.me/example");
+    expect(closing).toContain("公式ラインの友達追加をお勧めしております");
+    expect(closing).toContain("https://page.line.me/example");
   });
 
   it("公式ラインURLが未設定の場合は案内を挿入しない", () => {
-    const body = buildDraftBody("山田太郎", config);
+    const closing = buildClosing(config);
 
-    expect(body).not.toContain("公式ライン");
+    expect(closing).not.toContain("公式ライン");
+    expect(closing.startsWith("ご確認よろしくお願いいたします。")).toBe(true);
   });
 
-  it("署名が設定されている場合は本文末尾に追加する", () => {
-    const body = buildDraftBody("山田太郎", {
-      organizationName: "example organization",
-      replySignature: "example signature",
-      lineFriendUrl: "",
-    });
+  it("署名が設定されている場合は末尾に追加する", () => {
+    const closing = buildClosing({ ...config, replySignature: "example signature" });
 
-    expect(body.endsWith("\n\nexample signature")).toBe(true);
+    expect(closing.endsWith("\n\nexample signature")).toBe(true);
   });
 
   it("公式ラインURLと署名が両方設定されている場合は案内の後に署名を続ける", () => {
-    const body = buildDraftBody("山田太郎", {
-      organizationName: "example organization",
-      replySignature: "example signature",
+    const closing = buildClosing({
+      ...config,
       lineFriendUrl: "https://page.line.me/example",
+      replySignature: "example signature",
     });
 
-    expect(body.endsWith("https://page.line.me/example\n\nexample signature")).toBe(true);
+    expect(closing).toContain("https://page.line.me/example\n\nご確認よろしくお願いいたします。\n\nexample signature");
+  });
+});
+
+describe("buildDraftBody", () => {
+  const config = {
+    organizationName: "example organization",
+    managerName: "example manager",
+    replySignature: "",
+    lineFriendUrl: "",
+  };
+
+  it("挨拶・本文・結びを順に組み立てる", () => {
+    const body = buildDraftBody("山田太郎", "内見の希望日について本文です。", config);
+
+    expect(body).toBe(
+      `${buildGreeting("山田太郎", config)}\n\n内見の希望日について本文です。\n\n${buildClosing(config)}`,
+    );
   });
 });
 

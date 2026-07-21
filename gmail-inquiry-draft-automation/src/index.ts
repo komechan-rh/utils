@@ -100,6 +100,11 @@ function main(): void {
   }
 }
 
+function setScriptProperties(props: Record<string, string>): void {
+  PropertiesService.getScriptProperties().setProperties(props, false);
+  console.log(`スクリプトプロパティを更新しました。キー: ${Object.keys(props).join(", ")}`);
+}
+
 function setupTrigger(): void {
   const triggers = ScriptApp.getProjectTriggers();
   for (const trigger of triggers) {
@@ -113,4 +118,4 @@ function setupTrigger(): void {
   console.log(`トリガーを登録しました。${TRIGGER_INTERVAL_MINUTES}分ごとに main が実行されます。`);
 }
 
-export { main, setupTrigger };
+export { main, setScriptProperties, setupTrigger };

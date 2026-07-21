@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildClosing,
@@ -9,7 +9,7 @@ import {
   extractSenderName,
   threadHasExistingDraft,
 } from "./inquiry-draft";
-import { main, setupTrigger } from "./index";
+import { main, setScriptProperties, setupTrigger } from "./index";
 
 describe("GAS entrypoints", () => {
   it("GASから呼び出すmain関数を定義する", () => {
@@ -18,6 +18,26 @@ describe("GAS entrypoints", () => {
 
   it("GASから呼び出すsetupTrigger関数を定義する", () => {
     expect(setupTrigger).toBeTypeOf("function");
+  });
+});
+
+describe("setScriptProperties", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("渡されたプロパティをすべて上書きし、既存の他のプロパティは削除しない", () => {
+    const setProperties = vi.fn();
+    vi.stubGlobal("PropertiesService", {
+      getScriptProperties: () => ({ setProperties }),
+    });
+
+    setScriptProperties({ GEMINI_API_KEY: "dummy-key", ORGANIZATION_NAME: "example organization" });
+
+    expect(setProperties).toHaveBeenCalledWith(
+      { GEMINI_API_KEY: "dummy-key", ORGANIZATION_NAME: "example organization" },
+      false,
+    );
   });
 });
 

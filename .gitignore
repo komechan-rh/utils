@@ -10,6 +10,9 @@ dist/
 # clasp artifacts
 .clasp.json
 
+# Infisical local config (workspace/project IDs)
+.infisical.json
+
 # OS files
 .DS_Store
 

@@ -93,7 +93,7 @@ Apps Script エディタの「プロジェクトの設定」→「スクリプ�
 前提:
 
 - Apps Script エディタの「プロジェクトの設定」→「スクリプト プロパティ」で `SYNC_SECRET` にランダムな文字列を手動設定済みであること（初回のみ、Web アプリ経由では設定できない）
-- Infisical の共有プロジェクトの `/manager-line-notifications` フォルダに、`LINE_GROUP_ID`・`LINE_CHANNEL_ACCESS_TOKEN`・`PAYROLL_SPREADSHEET_ID`・`SYNC_SECRET`（エディタで設定した値と同じもの）・`WEBAPP_URL`（LINE Webhookとして既に登録済みのURL）を登録済みであること
+- Infisical の共有プロジェクトの `/manager-line-notifications` フォルダに、`LINE_GROUP_ID`・`LINE_CHANNEL_ACCESS_TOKEN`・`PAYROLL_SPREADSHEET_ID`・`SYNC_SECRET`（エディタで設定した値と同じもの）・`MANAGER_LINE_WEBAPP_URL`（LINE Webhookとして既に登録済みのURL）を登録済みであること
 
 実行方法:
 

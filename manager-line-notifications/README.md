@@ -46,12 +46,25 @@ reply 機能を使うため、Webhook は一時的にではなく常時オンに
    - **チャネルアクセストークン（長期）** を発行する → `LINE_CHANNEL_ACCESS_TOKEN` に使用
    - 「応答メッセージ」（LINE公式アカウントのデフォルト応答機能）をオフにする（`doPost` 側の応答と重複させないため）
    - 「Webhookの利用」をオンにする
-4. `pnpm run push` で反映後、Apps Script エディタで「デプロイ」→「新しいデプロイ」→ 種類「ウェブアプリ」、実行ユーザー「自分」、アクセス「全員」でデプロイし、発行された URL を Messaging API 設定の Webhook URL に登録します。
+4. 初回は `pnpm run deploy:webhook` を実行すると、ビルド・push・新規デプロイ・Messaging API 設定への Webhook URL 登録までを自動化できます（詳細は下記「デプロイ後の Webhook URL 自動更新」）。手動で行う場合は、`pnpm run push` で反映後、Apps Script エディタで「デプロイ」→「新しいデプロイ」→ 種類「ウェブアプリ」、実行ユーザー「自分」、アクセス「全員」でデプロイし、発行された URL を Messaging API 設定の Webhook URL に登録します。
 
-   **コードを更新した場合は、二度と `pnpm run deploy` を使わないでください。** `deploy` は新規デプロイ（＝新しいURL）を作成するため、LINE側に登録済みのWebhook URLが無効になります。既存デプロイの更新には、必ず `DEPLOYMENT_ID=<デプロイID> CLASP_USER=<alias> pnpm run redeploy` を使い、同じデプロイ・同じURLのままコードだけを更新してください。デプロイIDは `clasp deployments -u <alias>` で確認できます。更新後は LINE グループで実際にメッセージ（例:「今週の予定」）を送り、Bot が応答することを必ず確認してください。
+   **Webhook URL を登録済みの状態でコードを更新した場合は、二度と `pnpm run deploy` / `pnpm run deploy:webhook` を使わないでください。** どちらも新規デプロイ（＝新しいURL）を作成するため、LINE側に登録済みのWebhook URLが無効になります。既存デプロイの更新には、必ず `DEPLOYMENT_ID=<デプロイID> CLASP_USER=<alias> pnpm run redeploy` を使い、同じデプロイ・同じURLのままコードだけを更新してください。デプロイIDは `clasp deployments -u <alias>` で確認できます。更新後は LINE グループで実際にメッセージ（例:「今週の予定」）を送り、Bot が応答することを必ず確認してください。
 5. 作成した Bot を、通知を送りたい LINE グループに招待します（QRコードまたは Bot の LINE ID で友だち追加してからグループに招待）。
 6. グループ内で「ID」と発言し、返信された `group_id` を `LINE_GROUP_ID` に使います。
 7. 取得したチャネルアクセストークンとグループIDを、GAS のスクリプトプロパティに設定します。
+
+### デプロイ後の Webhook URL 自動更新
+
+`clasp deploy` は実行のたびに新しい deploymentId（＝ Web アプリ URL）を発行するため、新規デプロイのたびに LINE Developers 側の Webhook URL を手動で登録し直す必要があります。`scripts/deploy-and-update-webhook.sh` はビルド・push・deploy を実行し、発行された URL を LINE Messaging API（`PUT /v2/bot/channel/webhook/endpoint`）で自動的に反映します。**既存デプロイのコード更新（URLを変えたくない場合）には使わず、`pnpm run redeploy` を使ってください。**
+
+1. `CLASP_USER` を環境変数として設定します（`pnpm run push` / `pnpm run deploy` と同様）。
+2. `pnpm run deploy:webhook` を実行します（`LINE_CHANNEL_ACCESS_TOKEN` は Infisical から `infisical run` 経由で自動的に注入されます。前掲「スクリプトプロパティ」「Infisical によるスクリプトプロパティの自動同期」参照）。
+
+内部では以下を行います。
+
+- `pnpm run build` → `clasp push` → `clasp deploy --json` を実行し、レスポンスから `deploymentId` を取得
+- `https://script.google.com/macros/s/<deploymentId>/exec` を Webhook URL として LINE の Webhook エンドポイント設定 API に登録
+- LINE の Webhook 疎通確認 API（`/v2/bot/channel/webhook/test`）で反映結果を表示
 
 ## 給与支払いスプレッドシートの設定
 
@@ -109,6 +122,7 @@ pnpm run sync-props
 - `pnpm run sync-props` - Infisical のシークレットをスクリプトプロパティへ同期（前掲の「Infisical によるスクリプトプロパティの自動同期」参照）
 - `pnpm run deploy` - clasp で新規デプロイを作成する（**本番Webhookが有効な間は使用禁止**。既存デプロイの更新には `redeploy` を使うこと）
 - `pnpm run redeploy` - `DEPLOYMENT_ID` 環境変数で指定した既存デプロイをコードごと更新する（URLは変わらない）
+- `pnpm run deploy:webhook` - 新規デプロイを実行し、発行された URL を LINE Developers の Webhook URL に自動反映する（前掲「デプロイ後の Webhook URL 自動更新」参照。既存デプロイの更新には使わないこと）
 - `pnpm run open` - Apps Script エディタを開く
 - `pnpm run typecheck` - 型チェック
 - `pnpm run lint` - Biome lint

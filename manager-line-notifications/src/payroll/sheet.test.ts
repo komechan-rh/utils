@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildMonthlyPayrollResult } from "./sheet";
+import { buildMonthlyPayrollResult, findPaymentStatusCell } from "./sheet";
 
 // 実際のスプレッドシートの氏名は含めず、ダミーの氏名で構成を再現する。
 // スタッフCは「氏名行に名前はあるが合計列のラベルが空欄」という
@@ -112,5 +112,25 @@ describe("buildMonthlyPayrollResult", () => {
     const result = buildMonthlyPayrollResult(values, new Date(2026, 6, 9));
 
     expect(result?.payments).toEqual([{ personName: "スタッフA", amount: 40000 }]);
+  });
+});
+
+describe("findPaymentStatusCell", () => {
+  it("対象月の行にある支払い状況セルの位置（1始まりの行・列）を返す", () => {
+    const dueDate = new Date(2026, 6, 30);
+    const values = buildSheetValues(dueDate);
+
+    const cell = findPaymentStatusCell(values, new Date(2026, 6, 9));
+
+    expect(cell).toEqual({ row: 3, col: 20 });
+  });
+
+  it("対象月に一致する支払い予定日がなければundefinedを返す", () => {
+    const dueDate = new Date(2026, 6, 30);
+    const values = buildSheetValues(dueDate);
+
+    const cell = findPaymentStatusCell(values, new Date(2026, 7, 1));
+
+    expect(cell).toBeUndefined();
   });
 });

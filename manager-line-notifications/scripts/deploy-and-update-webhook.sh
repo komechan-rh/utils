@@ -19,7 +19,7 @@ echo "==> ビルド"
 pnpm run build
 
 echo "==> Apps Script へ push"
-clasp push -u "$CLASP_USER"
+clasp push -u "$CLASP_USER" --force
 
 echo "==> デプロイ"
 DEPLOY_JSON="$(clasp deploy -u "$CLASP_USER" --json)"

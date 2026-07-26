@@ -10,7 +10,7 @@
     "redeploy": "pnpm build && clasp push -u ${CLASP_USER:?CLASP_USER is not set} && clasp redeploy -u ${CLASP_USER:?CLASP_USER is not set} ${DEPLOYMENT_ID:?DEPLOYMENT_ID is not set}",
     "deploy:webhook": "infisical run -- bash scripts/deploy-and-update-webhook.sh",
     "open": "clasp open-script -u ${CLASP_USER:?CLASP_USER is not set}",
-    "sync-props": "infisical run --path=\"/manager-line-notifications\" -- node scripts/sync-script-properties.mjs",
+    "sync-props": "infisical run -- node scripts/sync-script-properties.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "biome lint src",

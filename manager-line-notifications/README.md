@@ -58,7 +58,7 @@ reply 機能を使うため、Webhook は一時的にではなく常時オンに
 `clasp deploy` は実行のたびに新しい deploymentId（＝ Web アプリ URL）を発行するため、新規デプロイのたびに LINE Developers 側の Webhook URL を手動で登録し直す必要があります。`scripts/deploy-and-update-webhook.sh` はビルド・push・deploy を実行し、発行された URL を LINE Messaging API（`PUT /v2/bot/channel/webhook/endpoint`）で自動的に反映します。**既存デプロイのコード更新（URLを変えたくない場合）には使わず、`pnpm run redeploy` を使ってください。**
 
 1. `CLASP_USER` を環境変数として設定します（`pnpm run push` / `pnpm run deploy` と同様）。
-2. `pnpm run deploy:webhook` を実行します（`LINE_CHANNEL_ACCESS_TOKEN` は Infisical の `/manager-line-notifications` から `infisical run` 経由で自動的に注入されます。前掲「スクリプトプロパティ」「Infisical によるスクリプトプロパティの自動同期」参照）。
+2. `pnpm run deploy:webhook` を実行します（`LINE_CHANNEL_ACCESS_TOKEN` は Infisical から `infisical run` 経由で自動的に注入されます。前掲「スクリプトプロパティ」「Infisical によるスクリプトプロパティの自動同期」参照）。
 
 内部では以下を行います。
 

@@ -2,7 +2,7 @@ import { getCurrentWeekMonday, getWeeklyEvents } from "./calendar/schedule";
 import { formatWeeklyMessage } from "./calendar/formatter";
 import { replyTextMessage } from "./line-client";
 import { formatMonthlyPayrollMessage } from "./payroll/formatter";
-import { getMonthlyPayroll } from "./payroll/sheet";
+import { getMonthlyPayroll, markMonthlyPayrollAsPaid } from "./payroll/sheet";
 
 type LineCommandContext = {
   replyToken: string;
@@ -34,11 +34,21 @@ function replyMonthlyPayroll({ replyToken }: LineCommandContext): void {
   replyTextMessage(replyToken, message);
 }
 
+function replyMarkPayrollAsPaid({ replyToken }: LineCommandContext): void {
+  const updated = markMonthlyPayrollAsPaid();
+  const message = updated
+    ? "給与の支払い状況を「済」に更新しました。"
+    : "今月の支払い予定が見つからず、更新できませんでした。";
+
+  replyTextMessage(replyToken, message);
+}
+
 // LINEグループ内での発言キーワードとハンドラの対応表。
 // 発言キーワードが増えても、この対応表に追加するだけでよい。
 const LINE_COMMANDS: Record<string, LineCommandHandler> = {
   今週の予定: replyWeeklySchedule,
   今月の給与: replyMonthlyPayroll,
+  給与支払い済: replyMarkPayrollAsPaid,
   ID: replyGroupId,
 };
 

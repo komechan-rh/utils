@@ -42,19 +42,21 @@ function buildColumnMap(nameRow: unknown[], labelRow: unknown[]): ColumnMap {
   return { workMonthCol, paymentDueDateCol, paymentStatusCol, totalColumns };
 }
 
+function matchesTargetMonth(row: unknown[], columnMap: ColumnMap, targetDate: Date): boolean {
+  const dueDate = row[columnMap.paymentDueDateCol];
+  return (
+    dueDate instanceof Date &&
+    dueDate.getFullYear() === targetDate.getFullYear() &&
+    dueDate.getMonth() === targetDate.getMonth()
+  );
+}
+
 function findTargetRow(
   dataRows: unknown[][],
   columnMap: ColumnMap,
   targetDate: Date,
 ): unknown[] | undefined {
-  return dataRows.find((row) => {
-    const dueDate = row[columnMap.paymentDueDateCol];
-    return (
-      dueDate instanceof Date &&
-      dueDate.getFullYear() === targetDate.getFullYear() &&
-      dueDate.getMonth() === targetDate.getMonth()
-    );
-  });
+  return dataRows.find((row) => matchesTargetMonth(row, columnMap, targetDate));
 }
 
 function formatWorkMonth(value: unknown): string {
@@ -103,4 +105,51 @@ function getMonthlyPayroll(targetDate: Date = new Date()): MonthlyPayrollResult 
   return buildMonthlyPayrollResult(values, targetDate);
 }
 
-export { getMonthlyPayroll, buildMonthlyPayrollResult };
+type PaymentStatusCell = {
+  row: number;
+  col: number;
+};
+
+// シート上の「支払い状況」セルの位置（1始まりの行・列番号）を求める。
+// buildMonthlyPayrollResultは値の抽出のみだが、書き込みにはシート全体における絶対位置が要る。
+function findPaymentStatusCell(
+  values: unknown[][],
+  targetDate: Date,
+): PaymentStatusCell | undefined {
+  const { nameRow, labelRow, dataStartIndex } = findHeaderRows(values);
+  const columnMap = buildColumnMap(nameRow, labelRow);
+  const dataRows = values.slice(dataStartIndex);
+
+  const targetRowIndex = dataRows.findIndex((row) => matchesTargetMonth(row, columnMap, targetDate));
+  if (targetRowIndex < 0) return undefined;
+
+  return {
+    row: dataStartIndex + targetRowIndex + 1,
+    col: columnMap.paymentStatusCol + 1,
+  };
+}
+
+function markMonthlyPayrollAsPaid(targetDate: Date = new Date()): boolean {
+  const spreadsheetId = PropertiesService.getScriptProperties().getProperty(
+    "PAYROLL_SPREADSHEET_ID",
+  );
+  if (!spreadsheetId) {
+    throw new Error("PAYROLL_SPREADSHEET_ID がスクリプトプロパティに設定されていません。");
+  }
+
+  const sheet = SpreadsheetApp.openById(spreadsheetId).getSheets()[0];
+  const values = sheet.getDataRange().getValues();
+
+  const cell = findPaymentStatusCell(values, targetDate);
+  if (!cell) return false;
+
+  sheet.getRange(cell.row, cell.col).setValue("済");
+  return true;
+}
+
+export {
+  getMonthlyPayroll,
+  buildMonthlyPayrollResult,
+  findPaymentStatusCell,
+  markMonthlyPayrollAsPaid,
+};

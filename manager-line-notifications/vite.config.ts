@@ -9,6 +9,7 @@ export default defineConfig({
         if (chunk?.type === "chunk") {
           chunk.code +=
             "\nfunction weeklyScheduleToLine() { SummurizeGoogleCalendarToManagerBundle.weeklyScheduleToLine(); }" +
+            "\nfunction monthlyPayrollToLine() { SummurizeGoogleCalendarToManagerBundle.monthlyPayrollToLine(); }" +
             "\nfunction setupTrigger() { SummurizeGoogleCalendarToManagerBundle.setupTrigger(); }" +
             "\nfunction doPost(e) { return SummurizeGoogleCalendarToManagerBundle.doPost(e); }\n";
         }

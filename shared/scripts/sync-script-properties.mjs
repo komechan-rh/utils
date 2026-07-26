@@ -1,13 +1,15 @@
 /**
  * Infisicalから注入された環境変数のうち、呼び出し側が指定したキーだけを抽出し、
  * 各automationが個別にデプロイしたWebアプリ(doPost)へ {secret, properties} としてPOSTする。
- * @param {{ requiredKeys: string[]; optionalKeys?: string[] }} options
+ * WebアプリのURLを保持する環境変数名は automation ごとに異なる値を持つため、
+ * 呼び出し側が `webAppUrlKey` で自身のキー名を指定する（全automationで共通の `WEBAPP_URL` は使わない）。
+ * @param {{ webAppUrlKey: string; requiredKeys: string[]; optionalKeys?: string[] }} options
  */
-export async function syncScriptProperties({ requiredKeys, optionalKeys = [] }) {
-  const webAppUrl = process.env.WEBAPP_URL;
+export async function syncScriptProperties({ webAppUrlKey, requiredKeys, optionalKeys = [] }) {
+  const webAppUrl = process.env[webAppUrlKey];
   if (!webAppUrl) {
     throw new Error(
-      "WEBAPP_URL が環境変数に設定されていません。`pnpm run deploy` で発行したWebアプリのURLをInfisicalに登録してください。",
+      `${webAppUrlKey} が環境変数に設定されていません。\`pnpm run deploy\` で発行したWebアプリのURLをInfisicalに登録してください。`,
     );
   }
 

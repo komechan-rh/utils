@@ -71,7 +71,7 @@ Apps Script エディタの「プロジェクトの設定」→「スクリプ�
 - Web アプリとしてデプロイ済みであること（`appsscript.json` の `webapp` 設定、`pnpm run deploy` 参照）
 - Apps Script エディタの「プロジェクトの設定」→「スクリプト プロパティ」で `SYNC_SECRET` にランダムな文字列を手動設定済みであること（初回のみ、Web アプリ経由では設定できない）
 - [Infisical CLI](https://infisical.com/docs/cli/overview) をインストール済みで、`infisical login` / `infisical init` をこのディレクトリで実行済みであること
-- Infisical 側に、上記表と同じキー名（`ORGANIZATION_NAME` / `MANAGER_NAME` / `GEMINI_API_KEY` など）と、`WEBAPP_URL`（`pnpm run deploy` で発行されたWebアプリのURL）・`SYNC_SECRET`（エディタで設定した値と同じもの）を登録済みであること
+- Infisical 側に、上記表と同じキー名（`ORGANIZATION_NAME` / `MANAGER_NAME` / `GEMINI_API_KEY` など）と、`GMAIL_INQUIRY_WEBAPP_URL`（`pnpm run deploy` で発行されたWebアプリのURL）・`SYNC_SECRET`（エディタで設定した値と同じもの）を登録済みであること
 
 実行方法:
 

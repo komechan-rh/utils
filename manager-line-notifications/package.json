@@ -5,9 +5,9 @@
   "scripts": {
     "build": "vite build && cp appsscript.json dist/appsscript.json",
     "watch": "tsc --watch",
-    "push": "pnpm build && clasp push -u ${CLASP_USER:?CLASP_USER is not set}",
+    "push": "pnpm build && clasp push -u ${CLASP_USER:?CLASP_USER is not set} --force",
     "deploy": "clasp deploy -u ${CLASP_USER:?CLASP_USER is not set}",
-    "redeploy": "pnpm build && clasp push -u ${CLASP_USER:?CLASP_USER is not set} && clasp redeploy -u ${CLASP_USER:?CLASP_USER is not set} ${DEPLOYMENT_ID:?DEPLOYMENT_ID is not set}",
+    "redeploy": "pnpm build && clasp push -u ${CLASP_USER:?CLASP_USER is not set} --force && clasp redeploy -u ${CLASP_USER:?CLASP_USER is not set} ${DEPLOYMENT_ID:?DEPLOYMENT_ID is not set}",
     "deploy:webhook": "infisical run -- bash scripts/deploy-and-update-webhook.sh",
     "open": "clasp open-script -u ${CLASP_USER:?CLASP_USER is not set}",
     "sync-props": "infisical run -- node scripts/sync-script-properties.mjs",

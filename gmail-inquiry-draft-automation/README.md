@@ -25,7 +25,7 @@ pnpm install
 3. `pnpm run build` で TypeScript をコンパイルします。
 4. `pnpm run push` で Apps Script に反映します。
 5. Apps Script のブラウザ画面（`pnpm run open`）でスクリプトプロパティを設定します（下記「スクリプトプロパティ」参照）。
-6. `setupTrigger` を一度だけ手動実行し、`TRIGGER_INTERVAL_MINUTES`（既定値: 5分）ごとに `main` が実行される時間主導型トリガーを登録します。
+6. `setupTrigger` を一度だけ手動実行し、`TRIGGER_INTERVAL_MINUTES`（既定値: 15分）ごとに `main` が実行される時間主導型トリガーを登録します。
 
 `.clasp.json` の例:
 

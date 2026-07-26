@@ -14,7 +14,7 @@ import {
 const INQUIRY_SUBJECT_KEYWORD_DEFAULT = "問い合わせ";
 const PROCESSED_LABEL_NAME_DEFAULT = "下書き作成済み";
 const GEMINI_MODEL_DEFAULT = "gemini-2.5-flash";
-const TRIGGER_INTERVAL_MINUTES = 5;
+const TRIGGER_INTERVAL_MINUTES = 15;
 
 function getTrimmedProperty(props: GoogleAppsScript.Properties.Properties, key: string): string {
   return (props.getProperty(key) || "").trim();

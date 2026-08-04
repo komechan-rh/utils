@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildMonthlyPayrollResult,
   findPaymentStatusCell,
-  getPreviousMonthDate,
+  getMonthsAgoDate,
   resolveMarkTargetCell,
 } from "./sheet";
 
@@ -140,28 +140,29 @@ describe("findPaymentStatusCell", () => {
   });
 });
 
-describe("getPreviousMonthDate", () => {
-  it("基準日の前月の1日を返す", () => {
-    expect(getPreviousMonthDate(new Date(2026, 7, 15))).toEqual(new Date(2026, 6, 1));
+describe("getMonthsAgoDate", () => {
+  it("基準日からmonthsAgoヶ月前の1日を返す", () => {
+    expect(getMonthsAgoDate(2, new Date(2026, 7, 15))).toEqual(new Date(2026, 5, 1));
   });
 
-  it("1月が基準日の場合は前年12月になる", () => {
-    expect(getPreviousMonthDate(new Date(2026, 0, 15))).toEqual(new Date(2025, 11, 1));
+  it("年をまたぐ場合も正しく計算する", () => {
+    expect(getMonthsAgoDate(2, new Date(2026, 0, 15))).toEqual(new Date(2025, 10, 1));
   });
 });
 
 describe("resolveMarkTargetCell", () => {
-  // 支払いが遅れて翌月にずれ込んだケース: 前月分（7月30日締め）が未済のまま残っている状態で
-  // 8月に「給与支払い済」と発言した場合、当月分ではなく未済の前月分を更新対象にする。
-  function buildTwoMonthSheetValues(previousMonthStatus: string): unknown[][] {
+  // 支払いが遅れて2ヶ月分ずれ込んだケース: 未払いリマインド対象の前々月分（6月30日締め）が
+  // 未済のまま残っている状態で8月に「給与支払い済」と発言した場合、当月分ではなく
+  // 未済のリマインド対象月を更新対象にする。
+  function buildTwoMonthSheetValues(reminderTargetStatus: string): unknown[][] {
     const nameRow = ["", "", "", "スタッフA", "支払い状況"];
     const labelRow = ["稼働月", "稼働月末日", "支払い予定日", "合計", ""];
-    const previousMonthRow = [
-      "2026/06",
+    const reminderTargetRow = [
+      "2026/05",
+      new Date(2026, 4, 31),
       new Date(2026, 5, 30),
-      new Date(2026, 6, 30),
       40000,
-      previousMonthStatus,
+      reminderTargetStatus,
     ];
     const currentMonthRow = [
       "2026/07",
@@ -171,10 +172,10 @@ describe("resolveMarkTargetCell", () => {
       "未済",
     ];
 
-    return [nameRow, labelRow, previousMonthRow, currentMonthRow];
+    return [nameRow, labelRow, reminderTargetRow, currentMonthRow];
   }
 
-  it("前月分が未済であれば、当月分ではなく前月分のセル位置を返す", () => {
+  it("リマインド対象月（前々月分）が未済であれば、当月分ではなくそちらのセル位置を返す", () => {
     const values = buildTwoMonthSheetValues("未済");
 
     const cell = resolveMarkTargetCell(values, new Date(2026, 7, 5));
@@ -182,7 +183,7 @@ describe("resolveMarkTargetCell", () => {
     expect(cell).toEqual({ row: 3, col: 5 });
   });
 
-  it("前月分が済であれば、当月分のセル位置を返す", () => {
+  it("リマインド対象月（前々月分）が済であれば、当月分のセル位置を返す", () => {
     const values = buildTwoMonthSheetValues("済");
 
     const cell = resolveMarkTargetCell(values, new Date(2026, 7, 5));

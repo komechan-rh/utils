@@ -4,7 +4,12 @@ import { formatWeeklyMessage } from "./calendar/formatter";
 import { pushTextMessage } from "./line-client";
 import { handleLineWebhook } from "./line-webhook";
 import { formatMonthlyPayrollMessage, formatUnpaidPayrollReminderMessage } from "./payroll/formatter";
-import { getMonthlyPayroll, getPreviousMonthDate, PAID_STATUS } from "./payroll/sheet";
+import {
+  getMonthlyPayroll,
+  getMonthsAgoDate,
+  PAID_STATUS,
+  UNPAID_REMINDER_MONTHS_AGO,
+} from "./payroll/sheet";
 
 function weeklyScheduleToLine(): void {
   const props = PropertiesService.getScriptProperties();
@@ -37,7 +42,7 @@ function unpaidPayrollReminderToLine(): void {
 
   if (!groupId) throw new Error("LINE_GROUP_ID がスクリプトプロパティに設定されていません。");
 
-  const result = getMonthlyPayroll(getPreviousMonthDate());
+  const result = getMonthlyPayroll(getMonthsAgoDate(UNPAID_REMINDER_MONTHS_AGO));
   if (!result || result.paymentStatus === PAID_STATUS) return;
 
   const message = formatUnpaidPayrollReminderMessage(result);

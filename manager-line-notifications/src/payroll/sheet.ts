@@ -5,8 +5,11 @@ const NON_PERSON_LABELS = ["空き部屋数", "支払い状況"];
 
 const PAID_STATUS = "済";
 
-function getPreviousMonthDate(baseDate: Date = new Date()): Date {
-  return new Date(baseDate.getFullYear(), baseDate.getMonth() - 1, 1);
+// 未払いリマインドの対象月（支払い予定日ベース）。2ヶ月前 = 支払い予定日が2ヶ月前の月であるもの。
+const UNPAID_REMINDER_MONTHS_AGO = 2;
+
+function getMonthsAgoDate(monthsAgo: number, baseDate: Date = new Date()): Date {
+  return new Date(baseDate.getFullYear(), baseDate.getMonth() - monthsAgo, 1);
 }
 
 type ColumnMap = {
@@ -139,15 +142,19 @@ function isCellMarkedPaid(values: unknown[][], cell: PaymentStatusCell): boolean
   return values[cell.row - 1][cell.col - 1] === PAID_STATUS;
 }
 
-// 「給与支払い済」発言時点では対象月が前月分（支払いが遅れて翌月にずれ込んだ場合）か
-// 当月分かが分からないため、未払いのまま残っている前月分を優先して更新対象にする。
+// 「給与支払い済」発言時点では対象月が未払いリマインドの対象月（支払いが遅れて
+// ずれ込んだ場合）か当月分かが分からないため、未払いのまま残っているリマインド対象月を
+// 優先して更新対象にする。
 function resolveMarkTargetCell(
   values: unknown[][],
   targetDate: Date,
 ): PaymentStatusCell | undefined {
-  const previousMonthCell = findPaymentStatusCell(values, getPreviousMonthDate(targetDate));
-  if (previousMonthCell && !isCellMarkedPaid(values, previousMonthCell)) {
-    return previousMonthCell;
+  const reminderTargetCell = findPaymentStatusCell(
+    values,
+    getMonthsAgoDate(UNPAID_REMINDER_MONTHS_AGO, targetDate),
+  );
+  if (reminderTargetCell && !isCellMarkedPaid(values, reminderTargetCell)) {
+    return reminderTargetCell;
   }
 
   return findPaymentStatusCell(values, targetDate);
@@ -177,6 +184,7 @@ export {
   findPaymentStatusCell,
   markMonthlyPayrollAsPaid,
   resolveMarkTargetCell,
-  getPreviousMonthDate,
+  getMonthsAgoDate,
+  UNPAID_REMINDER_MONTHS_AGO,
   PAID_STATUS,
 };

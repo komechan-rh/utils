@@ -3,6 +3,12 @@ import type { MonthlyPayrollResult, PersonPayment } from "./types";
 // 空き部屋数・支払い状況は氏名行にも値を持つが、支払い対象者ではないため除外する。
 const NON_PERSON_LABELS = ["空き部屋数", "支払い状況"];
 
+const PAID_STATUS = "済";
+
+function getPreviousMonthDate(baseDate: Date = new Date()): Date {
+  return new Date(baseDate.getFullYear(), baseDate.getMonth() - 1, 1);
+}
+
 type ColumnMap = {
   workMonthCol: number;
   paymentDueDateCol: number;
@@ -129,6 +135,24 @@ function findPaymentStatusCell(
   };
 }
 
+function isCellMarkedPaid(values: unknown[][], cell: PaymentStatusCell): boolean {
+  return values[cell.row - 1][cell.col - 1] === PAID_STATUS;
+}
+
+// 「給与支払い済」発言時点では対象月が前月分（支払いが遅れて翌月にずれ込んだ場合）か
+// 当月分かが分からないため、未払いのまま残っている前月分を優先して更新対象にする。
+function resolveMarkTargetCell(
+  values: unknown[][],
+  targetDate: Date,
+): PaymentStatusCell | undefined {
+  const previousMonthCell = findPaymentStatusCell(values, getPreviousMonthDate(targetDate));
+  if (previousMonthCell && !isCellMarkedPaid(values, previousMonthCell)) {
+    return previousMonthCell;
+  }
+
+  return findPaymentStatusCell(values, targetDate);
+}
+
 function markMonthlyPayrollAsPaid(targetDate: Date = new Date()): boolean {
   const spreadsheetId = PropertiesService.getScriptProperties().getProperty(
     "PAYROLL_SPREADSHEET_ID",
@@ -140,10 +164,10 @@ function markMonthlyPayrollAsPaid(targetDate: Date = new Date()): boolean {
   const sheet = SpreadsheetApp.openById(spreadsheetId).getSheets()[0];
   const values = sheet.getDataRange().getValues();
 
-  const cell = findPaymentStatusCell(values, targetDate);
+  const cell = resolveMarkTargetCell(values, targetDate);
   if (!cell) return false;
 
-  sheet.getRange(cell.row, cell.col).setValue("済");
+  sheet.getRange(cell.row, cell.col).setValue(PAID_STATUS);
   return true;
 }
 
@@ -152,4 +176,7 @@ export {
   buildMonthlyPayrollResult,
   findPaymentStatusCell,
   markMonthlyPayrollAsPaid,
+  resolveMarkTargetCell,
+  getPreviousMonthDate,
+  PAID_STATUS,
 };

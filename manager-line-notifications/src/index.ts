@@ -3,8 +3,13 @@ import { getCurrentWeekMonday, getWeeklyEvents } from "./calendar/schedule";
 import { formatWeeklyMessage } from "./calendar/formatter";
 import { pushTextMessage } from "./line-client";
 import { handleLineWebhook } from "./line-webhook";
-import { formatMonthlyPayrollMessage } from "./payroll/formatter";
-import { getMonthlyPayroll } from "./payroll/sheet";
+import { formatMonthlyPayrollMessage, formatUnpaidPayrollReminderMessage } from "./payroll/formatter";
+import {
+  getMonthlyPayroll,
+  getMonthsAgoDate,
+  PAID_STATUS,
+  UNPAID_REMINDER_MONTHS_AGO,
+} from "./payroll/sheet";
 
 function weeklyScheduleToLine(): void {
   const props = PropertiesService.getScriptProperties();
@@ -31,11 +36,28 @@ function monthlyPayrollToLine(): void {
   pushTextMessage(groupId, message);
 }
 
+function unpaidPayrollReminderToLine(): void {
+  const props = PropertiesService.getScriptProperties();
+  const groupId = props.getProperty("LINE_GROUP_ID");
+
+  if (!groupId) throw new Error("LINE_GROUP_ID がスクリプトプロパティに設定されていません。");
+
+  const result = getMonthlyPayroll(getMonthsAgoDate(UNPAID_REMINDER_MONTHS_AGO));
+  if (!result || result.paymentStatus === PAID_STATUS) return;
+
+  const message = formatUnpaidPayrollReminderMessage(result);
+  pushTextMessage(groupId, message);
+}
+
 function setupTrigger(): void {
   const triggers = ScriptApp.getProjectTriggers();
   for (const trigger of triggers) {
     const handlerFunction = trigger.getHandlerFunction();
-    if (handlerFunction === "weeklyScheduleToLine" || handlerFunction === "monthlyPayrollToLine") {
+    if (
+      handlerFunction === "weeklyScheduleToLine" ||
+      handlerFunction === "monthlyPayrollToLine" ||
+      handlerFunction === "unpaidPayrollReminderToLine"
+    ) {
       ScriptApp.deleteTrigger(trigger);
     }
   }
@@ -48,8 +70,10 @@ function setupTrigger(): void {
 
   ScriptApp.newTrigger("monthlyPayrollToLine").timeBased().onMonthDay(25).atHour(8).create();
 
+  ScriptApp.newTrigger("unpaidPayrollReminderToLine").timeBased().everyDays(1).atHour(10).create();
+
   console.log(
-    "トリガーを登録しました。毎週月曜 8:00 に weeklyScheduleToLine、毎月25日 8:00 に monthlyPayrollToLine が実行されます。",
+    "トリガーを登録しました。毎週月曜 8:00 に weeklyScheduleToLine、毎月25日 8:00 に monthlyPayrollToLine、毎朝10:00 に unpaidPayrollReminderToLine が実行されます。",
   );
 }
 
@@ -70,4 +94,10 @@ function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.Content.Tex
   return respondJson(syncScriptProperties(body as { secret?: string; properties?: Record<string, string> }));
 }
 
-export { weeklyScheduleToLine, monthlyPayrollToLine, setupTrigger, doPost };
+export {
+  weeklyScheduleToLine,
+  monthlyPayrollToLine,
+  unpaidPayrollReminderToLine,
+  setupTrigger,
+  doPost,
+};

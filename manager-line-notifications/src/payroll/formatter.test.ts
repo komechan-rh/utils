@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMonthlyPayrollMessage } from "./formatter";
+import { formatMonthlyPayrollMessage, formatUnpaidPayrollReminderMessage } from "./formatter";
 import type { MonthlyPayrollResult } from "./types";
 
 describe("formatMonthlyPayrollMessage", () => {
@@ -39,5 +39,25 @@ describe("formatMonthlyPayrollMessage", () => {
     };
 
     expect(formatMonthlyPayrollMessage(result)).toContain("対象者なし");
+  });
+});
+
+describe("formatUnpaidPayrollReminderMessage", () => {
+  it("未払いのお知らせと、LINEでステータスを更新できる旨を含める", () => {
+    const result: MonthlyPayrollResult = {
+      workMonth: "2026/06",
+      paymentDueDate: new Date(2026, 6, 30),
+      paymentStatus: "未済",
+      payments: [{ personName: "スタッフA", amount: 40000 }],
+    };
+
+    const message = formatUnpaidPayrollReminderMessage(result);
+
+    expect(message).toContain("2026/06分");
+    expect(message).toContain("支払い予定日 2026/07/30");
+    expect(message).toContain("支払い状況: 未済");
+    expect(message).toContain("・スタッフA: 40,000円");
+    expect(message).toContain("合計: 40,000円");
+    expect(message).toContain("「給与支払い済」と発言すると支払い状況を更新できます。");
   });
 });

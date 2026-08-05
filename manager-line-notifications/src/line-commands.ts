@@ -1,5 +1,6 @@
-import { getCurrentWeekMonday, getWeeklyEvents } from "./calendar/schedule";
+import packageJson from "../package.json";
 import { formatWeeklyMessage } from "./calendar/formatter";
+import { getCurrentWeekMonday, getWeeklyEvents } from "./calendar/schedule";
 import { replyTextMessage } from "./line-client";
 import { formatMonthlyPayrollMessage } from "./payroll/formatter";
 import { getMonthlyPayroll, markMonthlyPayrollAsPaid } from "./payroll/sheet";
@@ -20,9 +21,7 @@ function replyWeeklySchedule({ replyToken }: LineCommandContext): void {
 }
 
 function replyGroupId({ replyToken, groupId }: LineCommandContext): void {
-  const text = groupId
-    ? groupId
-    : "このトークはグループではないため、グループIDを取得できません。";
+  const text = groupId ? groupId : "このトークはグループではないため、グループIDを取得できません。";
 
   replyTextMessage(replyToken, text);
 }
@@ -43,6 +42,10 @@ function replyMarkPayrollAsPaid({ replyToken }: LineCommandContext): void {
   replyTextMessage(replyToken, message);
 }
 
+function replyVersion({ replyToken }: LineCommandContext): void {
+  replyTextMessage(replyToken, `v${packageJson.version}`);
+}
+
 // LINEグループ内での発言キーワードとハンドラの対応表。
 // 発言キーワードが増えても、この対応表に追加するだけでよい。
 const LINE_COMMANDS: Record<string, LineCommandHandler> = {
@@ -50,11 +53,12 @@ const LINE_COMMANDS: Record<string, LineCommandHandler> = {
   今月の給与: replyMonthlyPayroll,
   給与支払い済: replyMarkPayrollAsPaid,
   ID: replyGroupId,
+  バージョン: replyVersion,
 };
 
 function findLineCommand(text: string): LineCommandHandler | undefined {
   return LINE_COMMANDS[text];
 }
 
-export { findLineCommand };
 export type { LineCommandContext, LineCommandHandler };
+export { findLineCommand };

@@ -10,6 +10,7 @@ export default defineConfig({
           chunk.code +=
             "\nfunction weeklyScheduleToLine() { SummurizeGoogleCalendarToManagerBundle.weeklyScheduleToLine(); }" +
             "\nfunction monthlyPayrollToLine() { SummurizeGoogleCalendarToManagerBundle.monthlyPayrollToLine(); }" +
+            "\nfunction unpaidPayrollReminderToLine() { SummurizeGoogleCalendarToManagerBundle.unpaidPayrollReminderToLine(); }" +
             "\nfunction setupTrigger() { SummurizeGoogleCalendarToManagerBundle.setupTrigger(); }" +
             "\nfunction doPost(e) { return SummurizeGoogleCalendarToManagerBundle.doPost(e); }\n";
         }

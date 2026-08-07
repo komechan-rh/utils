@@ -42,8 +42,15 @@ function unpaidPayrollReminderToLine(): void {
 
   if (!groupId) throw new Error("LINE_GROUP_ID がスクリプトプロパティに設定されていません。");
 
-  const result = getMonthlyPayroll(getMonthsAgoDate(UNPAID_REMINDER_MONTHS_AGO));
-  if (!result || result.paymentStatus === PAID_STATUS) return;
+  const targetDate = getMonthsAgoDate(UNPAID_REMINDER_MONTHS_AGO);
+  const targetMonthLabel = `${targetDate.getFullYear()}/${String(targetDate.getMonth() + 1).padStart(2, "0")}`;
+  const result = getMonthlyPayroll(targetDate);
+  if (!result || result.paymentStatus === PAID_STATUS) {
+    console.log(
+      `給与未払いリマインド: 対象月(${targetMonthLabel})は未払いではないため、通知をスキップしました。`,
+    );
+    return;
+  }
 
   const message = formatUnpaidPayrollReminderMessage(result);
   pushTextMessage(groupId, message);

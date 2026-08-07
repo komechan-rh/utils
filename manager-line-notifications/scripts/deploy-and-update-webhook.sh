@@ -15,6 +15,9 @@ cd "$PROJECT_DIR"
 : "${LINE_CHANNEL_ACCESS_TOKEN:?LINE_CHANNEL_ACCESS_TOKEN is not set}"
 : "${CLASP_USER:?CLASP_USER is not set}"
 
+echo "==> バージョンを上げる"
+pnpm run version:bump
+
 echo "==> ビルド"
 pnpm run build
 
